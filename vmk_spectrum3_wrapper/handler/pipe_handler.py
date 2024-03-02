@@ -3,13 +3,14 @@ import time
 
 import numpy as np
 
+from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
+from vmk_spectrum3_wrapper.handler import BufferHandler, Handler
 from vmk_spectrum3_wrapper.typing import Array, Digit, Second, T
-from vmk_spectrum3_wrapper.handler import Handler
 
 
-class PipeHandler(Handler):
+class PipeHandler(BaseHandler):
 
-    def __init__(self, __handlers: Sequence[Handler]):
+    def __init__(self, __handlers: Sequence[Handler | BufferHandler]):
         self._handlers = __handlers
 
     @property

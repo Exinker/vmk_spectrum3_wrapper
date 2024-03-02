@@ -1,18 +1,14 @@
-from abc import ABC, abstractmethod
 from typing import Callable
 
 import numpy as np
 
+from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
 from vmk_spectrum3_wrapper.typing import Array, Digit, T
 from vmk_spectrum3_wrapper.units import Units, get_scale
 
 
-class Handler(ABC):
-
-    # --------        private        --------
-    @abstractmethod
-    def __call__(self, data: Array[T]) -> Array[T]:
-        raise NotImplementedError
+class Handler(BaseHandler):
+    """Not reduce dimension handlers."""
 
 
 class ScaleHandler(Handler):
