@@ -3,27 +3,30 @@ from typing import Callable
 
 import numpy as np
 
-from vmk_spectrum3_wrapper.storage.storage import DeviceStorage
+from vmk_spectrum3_wrapper.handler import BufferHandler, PipeHandler
+from vmk_spectrum3_wrapper.storage.storage import Storage
 from vmk_spectrum3_wrapper.typing import Array, Digit, Second
 from vmk_spectrum3_wrapper.units import Units, get_scale
 
 
-class DeviceBufferStorage(DeviceStorage):
+class BufferStorage(Storage):
 
-    def __init__(self, buffer_size: int, buffer_handler: Callable[[Array[int]], Array[int]] | None = None, units: Units = Units.percent) -> None:
+    def __init__(self, buffer_handler: BufferHandler | PipeHandler, buffer_size: int) -> None:
+        if isinstance(buffer_handler, PipeHandler):
+            assert any(isinstance(h, BufferHandler) for h in buffer_handler), 'PipeHandler should contains one BufferHandler at least!'
+
         assert buffer_size > 1  # TODO: add message
 
         #
-        super().__init__(units=units)
+        super().__init__(handler=buffer_handler)
 
         self._started_at = None  # время начала измерения первого кадра
         self._finished_at = None  # время начала измерения последнего кадра
+        self._data = []
 
         self._buffer = []
-        self._buffer_size = buffer_size
         self._buffer_handler = buffer_handler
-
-        self._data = []
+        self._buffer_size = buffer_size
 
     # --------        buffer        --------
     @property
@@ -35,7 +38,7 @@ class DeviceBufferStorage(DeviceStorage):
         return self._buffer_size
 
     @property
-    def buffer_handler(self) -> Callable[[Array[float]], Array[float]]:
+    def buffer_handler(self) -> BufferHandler | PipeHandler:
         return self._buffer_handler
 
     # --------        data        --------
@@ -51,19 +54,16 @@ class DeviceBufferStorage(DeviceStorage):
         self._finished_at = time_at
 
         # buffer
-        frame = self.scale * frame  # scaling data
+        frame = frame.reshape(1, -1)
         self._buffer.append(frame)
 
         # data
         if len(self.buffer) == self.buffer_size:  # если буфер заполнен, то ранные обрабатываются `handler`, передаются в `data` и буфер очищается
 
             try:
-                # buffer
                 buffer = np.array(self.buffer)
-                if self.buffer_handler:
-                    buffer = self.buffer_handler(buffer)
+                buffer = self.buffer_handler(buffer)
 
-                #  data
                 self._data.append(buffer)
 
             finally:

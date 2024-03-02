@@ -1,3 +1,2 @@
-from .buffer_storage import DeviceBufferStorage
-from .storage import DeviceStorage
-
+from .buffer_storage import BufferStorage
+from .storage import Storage

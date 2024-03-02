@@ -7,7 +7,7 @@ from vmk_spectrum3_wrapper.units import Units, get_scale
 from vmk_spectrum3_wrapper.handler import Handler, PipeHandler, ScaleHandler
 
 
-class DeviceStorage:
+class Storage:
 
     def __init__(self, handler: Handler | None = None) -> None:
 
@@ -60,9 +60,7 @@ class DeviceStorage:
 
         # data
         frame = frame.reshape(1, -1)
-
-        if self.handler:
-            frame = self.handler(frame)
+        frame = self.handler(frame) if self.handler else frame
 
         self._data.append(frame)
 
