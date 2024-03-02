@@ -15,13 +15,6 @@ class Handler(ABC):
         raise NotImplementedError
 
 
-class AverageHandler(Handler):
-
-    # --------        private        --------
-    def __call__(self, data: Array[T]) -> Array[T]:
-        return np.mean(data, axis=0)
-
-
 class ScaleHandler(Handler):
     """Handler to scale a data from `Units.digit` to `units`"""
 

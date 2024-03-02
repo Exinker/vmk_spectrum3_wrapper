@@ -1,2 +1,3 @@
 from .handler import *
-from .pipe import PipeHandler
+from .buffer_handler import PipeHandler
+from .pipe_handler import PipeHandler
