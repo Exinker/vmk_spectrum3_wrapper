@@ -4,7 +4,7 @@ import numpy as np
 
 from vmk_spectrum3_wrapper.typing import Array, Digit, Second
 from vmk_spectrum3_wrapper.units import Units, get_scale
-from vmk_spectrum3_wrapper.handler import Handler, Scaler
+from vmk_spectrum3_wrapper.handler import Handler, PipeHandler, ScaleHandler
 
 
 class DeviceStorage:
@@ -15,7 +15,7 @@ class DeviceStorage:
         self._finished_at = None  # время начала измерения последнего кадра
         self._data = []
 
-        self._handler = handler or Scaler(units=Units.percent)
+        self._handler = handler or ScaleHandler(units=Units.percent)
 
     @property
     def duration(self) -> Second:
@@ -32,8 +32,13 @@ class DeviceStorage:
     @property
     def units(self) -> Units:
 
-        if isinstance(self.handler, Scaler):
+        if isinstance(self.handler, ScaleHandler):
             return self.handler.units
+
+        if isinstance(self.handler, PipeHandler):
+            for h in self.handler:
+                if isinstance(h, ScaleHandler):
+                    return h.units
 
         return Units.digit
 
@@ -54,6 +59,8 @@ class DeviceStorage:
         self._finished_at = time_at
 
         # data
+        frame = frame.reshape(1, -1)
+
         if self.handler:
             frame = self.handler(frame)
 
