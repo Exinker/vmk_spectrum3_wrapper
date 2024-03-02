@@ -1,17 +1,12 @@
 import matplotlib.pyplot as plt
 
-from vmk_spectrum3_wrapper.device import Device, DeviceConfigAuto
-from vmk_spectrum3_wrapper.storage import DeviceStorage
+from vmk_spectrum3_wrapper.device import Device
 from vmk_spectrum3_wrapper.units import get_label
 
 
 if __name__ == '__main__':
-    device = Device(
-        storage=DeviceStorage(),
-    )
-    device = device.create(
-        config=DeviceConfigAuto(),
-    )
+    device = Device()
+    device = device.create()
     device = device.connect()
     device = device.set_exposure(4)
 

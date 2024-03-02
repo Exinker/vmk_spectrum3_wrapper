@@ -9,25 +9,25 @@ import pyspectrum3 as ps3
 
 from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto
 from vmk_spectrum3_wrapper.device.exceptions import CreateDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, StatusTypeError, eprint
-from vmk_spectrum3_wrapper.storage import DeviceStorage
+from vmk_spectrum3_wrapper.storage import Storage
 from vmk_spectrum3_wrapper.typing import Array, IP, MicroSecond, MilliSecond, Second
 
 
 class Device:
 
-    def __init__(self, storage: DeviceStorage, verbose: bool = False) -> None:
+    def __init__(self, storage: Storage | None = None, verbose: bool = False) -> None:
 
         self.condition = threading.Condition(lock=None)
         self.verbose = verbose
 
         # device
         self._device = None
-        self._storage = storage
+        self._storage = storage or Storage()
         self._status = None
         self._exposure = None
         self._change_exposure_delay = None
 
-    def create(self, config: DeviceConfig) -> 'Device':
+    def create(self, config: DeviceConfig | None = None) -> 'Device':
         """Create a device."""
 
         def _create_device(config: DeviceConfig) -> 'Device':
@@ -41,6 +41,9 @@ class Device:
                 return device
 
             raise ValueError(f'Device {type(config).__name__} is not supported yet!')
+
+        # config
+        config = config or DeviceConfigAuto()
 
         # device
         device = _create_device(config)
@@ -63,7 +66,7 @@ class Device:
         """Connect to device."""
         message = 'Device is not ready to connect!'
 
-        # checkup to connect
+        # pass checks
         try:
             self._check_creation()
             self._check_connection(state=False)
@@ -88,7 +91,7 @@ class Device:
         """Disconnect from device."""
         message = 'Device is not ready to disconnect!'
 
-        # checkup to disconnect
+        # pass checks
         try:
             self._check_creation()
             self._check_connection(state=True)
@@ -118,7 +121,7 @@ class Device:
         """Set exposure."""
         message = 'Device is not ready to set exposure!'
 
-        # checkup to set exposure
+        # pass checks
         try:
             self._check_creation()
             self._check_connection()
@@ -165,12 +168,12 @@ class Device:
 
     # --------        storage        --------
     @property
-    def storage(self) -> DeviceStorage | None:
+    def storage(self) -> Storage | None:
         return self._storage
 
-    def set_storage(self, storage: DeviceStorage) -> 'Device':
+    def set_storage(self, storage: Storage) -> 'Device':
         """"""
-        assert isinstance(storage, DeviceStorage)
+        assert isinstance(storage, Storage)
 
         self._storage = storage
 
@@ -225,7 +228,7 @@ class Device:
         self._device.read(n_frames or self.storage.buffer_size)
 
         if blocking:
-            time.sleep(timeout)  # FIXME: нужна задержка, так как статут не всегда успевает измениться
+            time.sleep(timeout)  # FIXME: нужна задержка, так как статуc не всегда успевает измениться
 
             with self.condition:
                 while not self.is_status(ps3.AssemblyStatus.ALIVE):
