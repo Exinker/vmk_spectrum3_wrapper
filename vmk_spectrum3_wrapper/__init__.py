@@ -1,6 +1,6 @@
 NAME = 'vmk_spectrum3_wrapper'
 DESCRIPTION = 'It is a wrapper for `vmk_spectrum3` library.'
-VERSION = '0.0.5'
+VERSION = '0.1.0'
 
 AUTHOR_NAME = 'Pavel Vaschenko'
 AUTHOR_EMAIL = 'vaschenko@vmk.ru'
