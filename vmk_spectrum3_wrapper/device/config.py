@@ -1,13 +1,17 @@
+from abc import ABC, abstractmethod, abstractproperty
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import TypeAlias
+from typing import Iterator, TypeAlias
 
-from vmk_spectrum3_wrapper.typing import IP, MilliSecond
+import numpy as np
+
+from vmk_spectrum3_wrapper.typing import IP, MicroSecond, MilliSecond
 
 
 CHANGE_EXPOSURE_DELAY = 1000
 
 
+# --------        device config        --------
 @dataclass
 class DeviceConfigAuto:
     change_exposure_delay: MilliSecond = field(default=CHANGE_EXPOSURE_DELAY)
@@ -20,3 +24,78 @@ class DeviceConfigEthernet:
 
 
 DeviceConfig: TypeAlias = DeviceConfigAuto | DeviceConfigEthernet
+
+
+# --------        read config        --------
+class BaseReadConfig(ABC):
+
+    @staticmethod
+    def to_microsecond(__exposure: MilliSecond) -> MicroSecond:
+        value = int(np.round(1000 * __exposure).astype(int))
+
+        assert value % 100 == 0, 'Invalid exposure: {value} mks!'.format(
+            value=value,
+        )
+
+        return value
+
+    @abstractproperty
+    def total_frames(self) -> int:
+        raise NotImplementedError
+
+    # --------        private        --------
+    @abstractmethod
+    def __iter__(self) -> Iterator:
+        raise NotImplementedError
+
+    @abstractmethod
+    def __str__(self) -> str:
+        raise NotImplementedError
+
+
+class StandardReadConfig(BaseReadConfig):
+
+    def __init__(self, exposure: MilliSecond):
+        self.exposure = exposure
+
+    @property
+    def total_frames(self) -> int:
+        return 1
+
+    # --------        private        --------
+    def __iter__(self) -> Iterator:
+        return iter([
+            self.to_microsecond(self.exposure),
+        ])
+
+    def __str__(self) -> str:
+        cls = self.__class__
+
+        content = f'{self.exposure}'
+        return f'{cls.__name__}({content})'
+
+
+class ExtendedReadConfig(BaseReadConfig):
+
+    def __init__(self, exposure: tuple[MilliSecond, MilliSecond]):
+        self.exposure = exposure
+
+    @property
+    def total_frames(self) -> int:
+        return sum(self.n_frames)
+
+    # --------        private        --------
+    def __iter__(self) -> Iterator:
+        return iter(list(map(self.to_microsecond, self.exposure)))
+
+    def __str__(self) -> str:
+        cls = self.__class__
+
+        content = '; '.join([
+            f'({exposure}, {n_frames})'
+            for exposure, n_frames in zip(self.exposure, self.n_frames)
+        ])
+        return f'{cls.__name__}({content})'
+
+
+ReadConfig: TypeAlias = StandardReadConfig | ExtendedReadConfig

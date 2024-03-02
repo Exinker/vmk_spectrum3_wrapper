@@ -10,12 +10,12 @@ from vmk_spectrum3_wrapper.handler import Handler, PipeHandler, ScaleHandler
 class Storage:
 
     def __init__(self, handler: Handler | None = None) -> None:
+        self._handler = handler or ScaleHandler(units=Units.percent)
+        self._capacity = 1
 
         self._started_at = None  # время начала измерения первого кадра
         self._finished_at = None  # время начала измерения последнего кадра
         self._data = []
-
-        self._handler = handler or ScaleHandler(units=Units.percent)
 
     @property
     def duration(self) -> Second:
@@ -26,8 +26,12 @@ class Storage:
         return self._finished_at - self._started_at
 
     @property
-    def handler(self) -> Handler | None:
+    def handler(self) -> PipeHandler | Handler | None:
         return self._handler
+
+    @property
+    def capacity(self) -> int:
+        return self._capacity
 
     @property
     def units(self) -> Units:
@@ -79,6 +83,9 @@ class Storage:
         self._data.clear()
 
     # --------        private        --------
+    def __bool__(self) -> bool:
+        return True
+
     def __len__(self) -> int:
         return len(self._data)
 

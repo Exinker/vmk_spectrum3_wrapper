@@ -3,18 +3,17 @@ from typing import Callable
 
 import numpy as np
 
-from vmk_spectrum3_wrapper.handler import BufferHandler, PipeHandler
+from vmk_spectrum3_wrapper.handler import ExtendedHandler, PipeHandler
 from vmk_spectrum3_wrapper.storage.storage import Storage
 from vmk_spectrum3_wrapper.typing import Array, Digit, Second
 from vmk_spectrum3_wrapper.units import Units, get_scale
 
 
-class BufferStorage(Storage):
+class ExtendedStorage(Storage):
 
-    def __init__(self, handler: BufferHandler | PipeHandler, capacity: int) -> None:
+    def __init__(self, handler: ExtendedHandler | PipeHandler, capacity: tuple[int, int]) -> None:
         if isinstance(handler, PipeHandler):
-            assert any(isinstance(h, BufferHandler) for h in handler), 'PipeHandler should contains one BufferHandler at least!'
-        assert capacity > 1  # TODO: add message
+            assert any(isinstance(h, ExtendedHandler) for h in handler), 'PipeHandler should contains one ExtendedHandler at least!'
 
         #
         self._handler = handler
@@ -26,7 +25,7 @@ class BufferStorage(Storage):
         self._buffer = []
 
     @property
-    def handler(self) -> PipeHandler | BufferHandler:
+    def handler(self) -> PipeHandler | ExtendedHandler:
         return self._handler
 
     @property
@@ -35,7 +34,7 @@ class BufferStorage(Storage):
 
     @property
     def capacity(self) -> int:
-        return self._capacity
+        return sum(self._capacity)
 
     # --------        data        --------
     def put(self, frame: Array[int]) -> None:
