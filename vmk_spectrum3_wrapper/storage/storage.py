@@ -4,20 +4,19 @@ import numpy as np
 
 from vmk_spectrum3_wrapper.typing import Array, Digit, Second
 from vmk_spectrum3_wrapper.units import Units, get_scale
+from vmk_spectrum3_wrapper.handler import Handler, Scaler
 
 
 class DeviceStorage:
 
-    def __init__(self, units: Units = Units.percent) -> None:
+    def __init__(self, handler: Handler | None = None) -> None:
 
         self._started_at = None  # время начала измерения первого кадра
         self._finished_at = None  # время начала измерения последнего кадра
         self._data = []
 
-        self.units = units
-        self.scale = get_scale(units)
+        self._handler = handler or Scaler(units=Units.percent)
 
-    # --------        time        --------
     @property
     def duration(self) -> Second:
         """Время с начала измерения (от начала измерения первого до начала измерения последнего кадра!)."""
@@ -25,6 +24,18 @@ class DeviceStorage:
             return 0
 
         return self._finished_at - self._started_at
+
+    @property
+    def handler(self) -> Handler | None:
+        return self._handler
+
+    @property
+    def units(self) -> Units:
+
+        if isinstance(self.handler, Scaler):
+            return self.handler.units
+
+        return Units.digit
 
     # --------        data        --------
     @property
@@ -43,7 +54,9 @@ class DeviceStorage:
         self._finished_at = time_at
 
         # data
-        frame = self.scale * frame  # scaling data
+        if self.handler:
+            frame = self.handler(frame)
+
         self._data.append(frame)
 
     def pull(self, clear: bool = True) -> Array[Digit]:

@@ -1,9 +1,9 @@
 from enum import Enum
 from typing import TypeVar
 
-from vmk_spectrum3_wrapper.typing import Digit, Electron, Percent
+from vmk_spectrum3_wrapper.typing import Electron, T
 
-T = TypeVar('T', Digit, Electron, Percent)
+
 
 
 class Units(Enum):

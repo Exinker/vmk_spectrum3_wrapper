@@ -1,4 +1,4 @@
-from typing import NewType, TypeAlias
+from typing import NewType, TypeAlias, TypeVar
 
 from numpy.typing import NDArray
 
@@ -30,3 +30,5 @@ Absorbance = NewType('Absorbance', float)
 Digit = NewType('Digit', float)
 Electron = NewType('Electron', float)
 Percent = NewType('Percent', float)
+
+T = TypeVar('T', Digit, Electron, Percent)
