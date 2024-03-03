@@ -204,8 +204,8 @@ class Device:
         raise StatusTypeError(f'Status type {type(__status)} is not supported yet!')
 
     # --------        read        --------
-    def read(self, n_frames: int | None = None, blocking: bool = True, timeout: Second = 1e-2) -> Array[int] | None:
-        """Прочитать `n_frames` кадров и вернуть их (blocking), или прочитать `n_frames` кадров в `storage` (non blocking)."""
+    def read(self, n_iters: int, blocking: bool = True, timeout: Second = 1e-2) -> Array[int] | None:
+        """Прочитать `n_iters` раз и вернуть данные (blocking), или прочитать `n_iters` раз в `storage` (non blocking)."""
 
         # pass checks
         try:
@@ -225,7 +225,7 @@ class Device:
         self.storage.clear()
 
         # read data
-        self._device.read(n_frames or self.storage.buffer_size)
+        self._read(n_iters)
 
         if blocking:
             time.sleep(timeout)  # FIXME: нужна задержка, так как статуc не всегда успевает измениться
@@ -291,6 +291,17 @@ class Device:
             raise SetupDeviceError('Setup a exposure before!')
 
     # --------        private        --------
+    def _read(self, n_iters: int) -> int:
+        capacity = self.storage.capacity
+
+        if isinstance(capacity, int):
+            self._device.read(n_iters * capacity)
+
+        if isinstance(capacity, Sequence):
+            self._device.read(n_iters * sum(capacity))
+
+        raise TypeError(f'Storage capacity: {type(capacity)} is not supported yet!')
+
     def __repr__(self) -> str:
         cls = self.__class__
 
