@@ -204,8 +204,8 @@ class Device:
         raise StatusTypeError(f'Status type {type(__status)} is not supported yet!')
 
     # --------        read        --------
-    def read(self, n_frames: int | None = None, blocking: bool = True, timeout: Second = 1e-2) -> Array[int]:
-        """Прочитать `n_frames` кадров и вернуть их (blocking).""" """Прочитать `n_frames` кадров в `storage` (non blocking)."""
+    def read(self, n_frames: int | None = None, blocking: bool = True, timeout: Second = 1e-2) -> Array[int] | None:
+        """Прочитать `n_frames` кадров и вернуть их (blocking), или прочитать `n_frames` кадров в `storage` (not blocking)."""
 
         # pass checks
         try:
