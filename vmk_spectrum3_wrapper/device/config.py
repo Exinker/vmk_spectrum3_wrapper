@@ -1,6 +1,7 @@
 import itertools
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Iterator, TypeAlias
 
 import numpy as np
@@ -37,11 +38,26 @@ def to_microsecond(__exposure: MilliSecond) -> MicroSecond:
     return value
 
 
+class ReadMode(Enum):
+    standart = 'standart'
+    extended = 'extended'
+
+
 class ReadConfig:
 
     def __init__(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int]):
         self._exposure = exposure
         self._capacity = capacity
+
+        self._mode = {
+            int: ReadMode.standart,
+            float: ReadMode.standart,
+            tuple:  ReadMode.extended,
+        }[type(exposure)]
+
+        #
+        if self.mode == ReadMode.extended:
+            assert len(self.exposure) == len(self.capacity)
 
     @property
     def exposure(self) -> MilliSecond | tuple[MilliSecond, MilliSecond]:
@@ -51,13 +67,17 @@ class ReadConfig:
     def capacity(self) -> int | tuple[int, int]:
         return self._capacity
 
+    @property
+    def mode(self) -> ReadMode:
+        return self._mode
+
     # --------        private        --------
     def __iter__(self) -> Iterator:
 
-        if isinstance(self.exposure, float):
+        if self.mode == ReadMode.standart:
             return iter([self.exposure])
 
-        if isinstance(self.exposure, tuple):
+        if self.mode == ReadMode.extended:
             return itertools.chain(*[
                 (to_microsecond(exposure), capacity)
                 for exposure, capacity in zip(self.exposure, self.capacity)
@@ -70,13 +90,12 @@ class ReadConfig:
 
         return f'{cls.__name__}({self})'
 
-
     def __str__(self) -> str:
 
-        if isinstance(self.exposure, float):
+        if self.mode == ReadMode.standart:
             return f'{self.exposure}'
 
-        if isinstance(self.exposure, tuple):
+        if self.mode == ReadMode.extended:
             return '; '.join([
                 f'({exposure}, {capacity})'
                 for exposure, capacity in zip(self.exposure, self.capacity)

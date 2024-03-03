@@ -5,7 +5,7 @@ from typing import Mapping
 
 import pyspectrum3 as ps3
 
-from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, ReadConfig
+from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, ReadConfig, ReadMode
 from vmk_spectrum3_wrapper.device.exceptions import CreateDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, StatusTypeError, eprint
 from vmk_spectrum3_wrapper.storage import Storage
 from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond, Second
@@ -134,9 +134,10 @@ class Device:
 
         # setup device
         try:
-            if isinstance(config.exposure, float):
+            if config.mode == ReadMode.standart:
                 self._device.set_exposure(*config)
-            if isinstance(config.exposure, tuple):
+
+            if config.mode == ReadMode.extended:
                 self._device.set_double_exposure(*config)
 
         except ps3.DriverException as error:
@@ -152,6 +153,13 @@ class Device:
             if self.verbose:
                 message = f'Setup exposure: {self.exposure} ms!'
                 print(message)
+    
+        # setup storage
+        self.storage.clear()
+
+        if config.mode == ReadMode.extended:
+            pass
+            # self.storage.handler
 
         return self
 
@@ -209,9 +217,6 @@ class Device:
                 error=error,
             )
             return self
-
-        # setup storage
-        self.storage.clear()
 
         # read data
         self._device.read(n_iters * self.storage.capacity)
