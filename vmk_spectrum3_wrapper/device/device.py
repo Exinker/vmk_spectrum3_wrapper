@@ -221,11 +221,11 @@ class Device:
             )
             return self
 
-        # clear storage
+        # setup storage
         self.storage.clear()
 
         # read data
-        self._read(n_iters)
+        self._device.read(n_iters * self.storage.capacity)
 
         if blocking:
             time.sleep(timeout)  # FIXME: нужна задержка, так как статуc не всегда успевает измениться
@@ -291,17 +291,6 @@ class Device:
             raise SetupDeviceError('Setup a exposure before!')
 
     # --------        private        --------
-    def _read(self, n_iters: int) -> int:
-        capacity = self.storage.capacity
-
-        if isinstance(capacity, int):
-            self._device.read(n_iters * capacity)
-
-        if isinstance(capacity, Sequence):
-            self._device.read(n_iters * sum(capacity))
-
-        raise TypeError(f'Storage capacity: {type(capacity)} is not supported yet!')
-
     def __repr__(self) -> str:
         cls = self.__class__
 

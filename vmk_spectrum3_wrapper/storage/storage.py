@@ -15,6 +15,8 @@ class Storage(BaseStorage):
 
     @property
     def capacity(self) -> int:
+        """"Required `n_frames` to iteration."""
+
         return 1
 
     def put(self, frame: Array[Digit]) -> None:
