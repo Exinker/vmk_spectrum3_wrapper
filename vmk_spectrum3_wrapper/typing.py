@@ -3,11 +3,13 @@ from typing import NewType, TypeAlias, TypeVar
 from numpy.typing import NDArray
 
 
-# --------        types        --------
+# --------        structures        --------
 Array: TypeAlias = NDArray
 
-IP = NewType('IP', str)
-Path = NewType('IP', str)
+
+# --------        temperature units        --------
+Kelvin = NewType('Kelvin', float)
+Celsius = NewType('Celsius', float)
 
 
 # --------        time units        --------
@@ -17,11 +19,15 @@ MicroSecond = NewType('MicroSecond', int)
 
 Hz = NewType('Hz', float)
 
-
 # --------        spacial units        --------
+Inch = NewType('Inch', float)
+
 Meter = NewType('Meter', float)
+CentiMeter = NewType('CentiMeter', float)
+MilliMeter = NewType('MilliMeter', float)
 MicroMeter = NewType('MicroMeter', float)
 NanoMeter = NewType('NanoMeter', float)
+PicoMeter = NewType('Pico', float)
 
 Number = NewType('Number', float)
 
@@ -33,3 +39,8 @@ Electron = NewType('Electron', float)
 Percent = NewType('Percent', float)
 
 T = TypeVar('T', Digit, Electron, Percent)
+
+
+# --------        other units        --------
+IP = NewType('IP', str)
+Path = NewType('IP', str)
