@@ -11,18 +11,17 @@ from vmk_spectrum3_wrapper.units import Units, get_scale
 
 class BufferStorage(Storage):
 
-    def __init__(self, buffer_handler: PipeHandler, buffer_size: int) -> None:
-        if isinstance(buffer_handler, PipeHandler):
-            assert any(isinstance(h, BufferHandler) for h in buffer_handler), 'PipeHandler should contains one BufferHandler at least!'
+    def __init__(self, handler: PipeHandler, capacity: int) -> None:
+        if isinstance(handler, PipeHandler):
+            assert any(isinstance(h, BufferHandler) for h in handler), 'PipeHandler should contains one BufferHandler at least!'
 
-        assert buffer_size > 1  # TODO: add message
+        assert capacity > 1  # TODO: add message
 
         #
-        super().__init__(handler=buffer_handler)
+        super().__init__(handler=handler)
 
         self._buffer = []
-        self._buffer_handler = buffer_handler
-        self._buffer_size = buffer_size
+        self._capacity = capacity
 
     # --------        buffer        --------
     @property
@@ -30,12 +29,8 @@ class BufferStorage(Storage):
         return self._buffer
 
     @property
-    def buffer_size(self) -> int:
-        return self._buffer_size
-
-    @property
-    def buffer_handler(self) -> BufferHandler | PipeHandler:
-        return self._buffer_handler
+    def capacity(self) -> int:
+        return self._capacity
 
     # --------        data        --------
     def put(self, frame: Array[int]) -> None:
@@ -54,11 +49,11 @@ class BufferStorage(Storage):
         self._buffer.append(frame)
 
         # data
-        if len(self.buffer) == self.buffer_size:  # если буфер заполнен, то ранные обрабатываются `handler`, передаются в `data` и буфер очищается
+        if len(self.buffer) == self.capacity:  # если буфер заполнен, то ранные обрабатываются `handler`, передаются в `data` и буфер очищается
 
             try:
                 buffer = np.array(self.buffer)
-                buffer = self.buffer_handler(buffer)
+                buffer = self.handler(buffer)
 
                 self._data.append(buffer)
 
