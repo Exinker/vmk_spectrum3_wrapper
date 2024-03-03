@@ -1,16 +1,15 @@
+import itertools
 import threading
 import time
 from collections.abc import Sequence
 from typing import Mapping
 
-import numpy as np
-
 import pyspectrum3 as ps3
 
-from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto
+from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, ExtendedReadConfig, ReadConfig, StandardReadConfig
 from vmk_spectrum3_wrapper.device.exceptions import CreateDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, StatusTypeError, eprint
 from vmk_spectrum3_wrapper.storage import Storage
-from vmk_spectrum3_wrapper.typing import Array, IP, MicroSecond, MilliSecond, Second
+from vmk_spectrum3_wrapper.typing import Array, IP, Second
 
 
 class Device:
@@ -24,8 +23,9 @@ class Device:
         self._device = None
         self._storage = storage or Storage()
         self._status = None
-        self._exposure = None
-        self._change_exposure_delay = None
+
+        self._device_config = None
+        self._read_config = None
 
     def create(self, config: DeviceConfig | None = None) -> 'Device':
         """Create a device."""
@@ -43,10 +43,10 @@ class Device:
             raise ValueError(f'Device {type(config).__name__} is not supported yet!')
 
         # config
-        config = config or DeviceConfigAuto()
+        self._device_config = config or DeviceConfigAuto()
 
         # device
-        device = _create_device(config)
+        device = _create_device(self._device_config)
 
         device.set_frame_callback(self._on_frame)
         device.set_status_callback(self._on_status)
@@ -57,8 +57,7 @@ class Device:
         #
         self._status = None
         self._is_connected = False
-        self._exposure = None
-        self._change_exposure_delay = config.change_exposure_delay
+        self._read_config = None
 
         return self
 
@@ -112,14 +111,9 @@ class Device:
 
         return self
 
-    # --------        exposure        --------
-    @property
-    def exposure(self) -> MilliSecond | None:
-        return self._exposure
-
-    def set_exposure(self, exposure: MilliSecond) -> 'Device':
-        """Set exposure."""
-        message = 'Device is not ready to set exposure!'
+    def setup(self, config: ReadConfig) -> 'Device':
+        """Setup device to read."""
+        message = 'Device is not ready to setup!'
 
         # pass checks
         try:
@@ -127,44 +121,39 @@ class Device:
             self._check_connection()
             self._check_status(ps3.AssemblyStatus.ALIVE)
 
-            if exposure == self.exposure:
-                raise SetupDeviceError(f'The same exposure: {self.exposure} ms!')
+            if config == self._read_config:
+                raise SetupDeviceError(f'The same read config: {self._read_config} ms!')
 
         except DeviceError as error:
             eprint(message=message, error=error)
             return self
 
-        # set exposure
+        # setup device
         try:
-            self._device.set_exposure(self._to_microsecond(exposure))
+            if isinstance(config, StandardReadConfig):
+                self._device.set_exposure(*config)
+
+            if isinstance(config, ExtendedReadConfig):
+                self._device.set_double_exposure(*itertools.chain(*[
+                    (exposure, n_frames)
+                    for exposure, n_frames in zip(config, self.storage._capacity)
+                ]))
 
         except ps3.DriverException as error:
             eprint(message=message, error=error)
             return self
 
         else:
-            self._exposure = exposure
-            time.sleep(self._to_second(self._change_exposure_delay))  # delay after exposure update
+            self._read_config = config
+
+            duration = self._device_config.change_exposure_delay / 1000
+            time.sleep(duration)  # delay after exposure update
 
             if self.verbose:
                 message = f'Setup exposure: {self.exposure} ms!'
                 print(message)
 
         return self
-
-    @staticmethod
-    def _to_microsecond(__exposure: MilliSecond) -> MicroSecond:
-        value = int(np.round(1000 * __exposure).astype(int))
-
-        assert value % 100 == 0, 'Invalid exposure: {value} mks!'.format(
-            value=value,
-        )
-
-        return value
-
-    @staticmethod
-    def _to_second(__exposure: MilliSecond) -> Second:
-        return __exposure / 1000
 
     # --------        storage        --------
     @property
@@ -212,7 +201,7 @@ class Device:
             self._check_creation()
             self._check_connection()
             self._check_status(ps3.AssemblyStatus.ALIVE)
-            self._check_exposure()
+            self._check_read_config()
 
         except DeviceError as error:
             eprint(
@@ -285,10 +274,10 @@ class Device:
             )
             raise StatusDeviceError(message)
 
-    def _check_exposure(self) -> None:
+    def _check_read_config(self) -> None:
 
-        if self.exposure is None:
-            raise SetupDeviceError('Setup a exposure before!')
+        if self._read_config is None:
+            raise SetupDeviceError('Setup a device before!')
 
     # --------        private        --------
     def __repr__(self) -> str:
@@ -301,8 +290,8 @@ class Device:
                     assembly=str(self.status),
                 ),
                 'exposure: {exposure}{units}'.format(
-                    exposure='None' if self.exposure is None else f'{self.exposure}',
-                    units='' if self.exposure is None else 'ms',
+                    exposure='None' if self._read_config is None else f'{self._read_config}',
+                    units='' if self._read_config is None else 'ms',
                 ),
             ]),
         )
