@@ -4,14 +4,14 @@ from typing import Callable
 import numpy as np
 
 from vmk_spectrum3_wrapper.handler import BufferHandler, PipeHandler
-from vmk_spectrum3_wrapper.storage.storage import Storage
+from vmk_spectrum3_wrapper.storage.storage.base_storage import BaseStorage
 from vmk_spectrum3_wrapper.typing import Array, Digit, Second
 from vmk_spectrum3_wrapper.units import Units, get_scale
 
 
 class BufferStorage(Storage):
 
-    def __init__(self, buffer_handler: BufferHandler | PipeHandler, buffer_size: int) -> None:
+    def __init__(self, buffer_handler: PipeHandler, buffer_size: int) -> None:
         if isinstance(buffer_handler, PipeHandler):
             assert any(isinstance(h, BufferHandler) for h in buffer_handler), 'PipeHandler should contains one BufferHandler at least!'
 
@@ -19,10 +19,6 @@ class BufferStorage(Storage):
 
         #
         super().__init__(handler=buffer_handler)
-
-        self._started_at = None  # время начала измерения первого кадра
-        self._finished_at = None  # время начала измерения последнего кадра
-        self._data = []
 
         self._buffer = []
         self._buffer_handler = buffer_handler
@@ -68,16 +64,6 @@ class BufferStorage(Storage):
 
             finally:
                 self._buffer.clear()
-
-    def pull(self, clear: bool = True) -> Array[float]:
-        """Pull data from storage."""
-
-        try:
-            return np.array(self.data)
-
-        finally:
-            if clear:
-                self.clear()
 
     def clear(self) -> None:
         """Clear buffer and data."""
