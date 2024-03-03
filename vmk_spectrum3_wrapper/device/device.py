@@ -1,4 +1,3 @@
-import itertools
 import threading
 import time
 from collections.abc import Sequence
@@ -6,10 +5,10 @@ from typing import Mapping
 
 import pyspectrum3 as ps3
 
-from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, ExtendedReadConfig, ReadConfig, StandardReadConfig
+from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, ReadConfig
 from vmk_spectrum3_wrapper.device.exceptions import CreateDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, StatusTypeError, eprint
 from vmk_spectrum3_wrapper.storage import Storage
-from vmk_spectrum3_wrapper.typing import Array, IP, Second
+from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond, Second
 
 
 class Device:
@@ -111,9 +110,14 @@ class Device:
 
         return self
 
-    def setup(self, config: ReadConfig) -> 'Device':
+    def setup(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond]) -> 'Device':
         """Setup device to read."""
         message = 'Device is not ready to setup!'
+
+        config = ReadConfig(
+            exposure=exposure,
+            capacity=self.storage._capacity,
+        )
 
         # pass checks
         try:
@@ -130,14 +134,10 @@ class Device:
 
         # setup device
         try:
-            if isinstance(config, StandardReadConfig):
+            if isinstance(config.exposure, float):
                 self._device.set_exposure(*config)
-
-            if isinstance(config, ExtendedReadConfig):
-                self._device.set_double_exposure(*itertools.chain(*[
-                    (exposure, n_frames)
-                    for exposure, n_frames in zip(config, self.storage._capacity)
-                ]))
+            if isinstance(config.exposure, tuple):
+                self._device.set_double_exposure(*config)
 
         except ps3.DriverException as error:
             eprint(message=message, error=error)

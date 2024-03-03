@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod, abstractproperty
+import itertools
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Iterator, TypeAlias
@@ -27,76 +27,56 @@ DeviceConfig: TypeAlias = DeviceConfigAuto | DeviceConfigEthernet
 
 
 # --------        read config        --------
-class BaseReadConfig(ABC):
+def to_microsecond(__exposure: MilliSecond) -> MicroSecond:
+    value = int(np.round(1000 * __exposure).astype(int))
 
-    @abstractproperty
+    assert value % 100 == 0, 'Invalid exposure: {value} mks!'.format(
+        value=value,
+    )
+
+    return value
+
+
+class ReadConfig:
+
+    def __init__(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int]):
+        self._exposure = exposure
+        self._capacity = capacity
+
     @property
     def exposure(self) -> MilliSecond | tuple[MilliSecond, MilliSecond]:
-        raise NotImplementedError
-
-    @staticmethod
-    def to_microsecond(__exposure: MilliSecond) -> MicroSecond:
-        value = int(np.round(1000 * __exposure).astype(int))
-
-        assert value % 100 == 0, 'Invalid exposure: {value} mks!'.format(
-            value=value,
-        )
-
-        return value
-
-    # --------        private        --------
-    @abstractmethod
-    def __iter__(self) -> Iterator:
-        raise NotImplementedError
-
-    @abstractmethod
-    def __str__(self) -> str:
-        raise NotImplementedError
-
-
-class StandardReadConfig(BaseReadConfig):
-
-    def __init__(self, exposure: MilliSecond):
-        self._exposure = exposure
-
-    @property
-    def exposure(self) -> MilliSecond:
         return self._exposure
 
+    @property
+    def capacity(self) -> int | tuple[int, int]:
+        return self._capacity
+
     # --------        private        --------
     def __iter__(self) -> Iterator:
-        return iter([
-            self.to_microsecond(self.exposure),
-        ])
+
+        if isinstance(self.exposure, float):
+            return iter([self.exposure])
+
+        if isinstance(self.exposure, tuple):
+            return itertools.chain(*[
+                (to_microsecond(exposure), capacity)
+                for exposure, capacity in zip(self.exposure, self.capacity)
+            ])
+
+        raise TypeError()
 
     def __str__(self) -> str:
         cls = self.__class__
 
-        content = f'{self.exposure}'
-        return f'{cls.__name__}({content})'
+        if isinstance(self.exposure, float):
+            content = f'{self.exposure}'
+            return f'{cls.__name__}({content})'
 
+        if isinstance(self.exposure, tuple):
+            content = '; '.join([
+                f'({exposure}, {capacity})'
+                for exposure, capacity in zip(self.exposure, self.capacity)
+            ])
+            return f'{cls.__name__}({content})'
 
-class ExtendedReadConfig(BaseReadConfig):
-
-    def __init__(self, exposure: tuple[MilliSecond, MilliSecond]):
-        self._exposure = exposure
-
-    @property
-    def exposure(self) -> tuple[MilliSecond, MilliSecond]:
-        return self._exposure
-
-    # --------        private        --------
-    def __iter__(self) -> Iterator:
-        return iter(list(map(self.to_microsecond, self.exposure)))
-
-    def __str__(self) -> str:
-        cls = self.__class__
-
-        content = '; '.join([
-            f'{exposure}'
-            for exposure in self.exposure
-        ])
-        return f'{cls.__name__}({content})'
-
-
-ReadConfig: TypeAlias = StandardReadConfig | ExtendedReadConfig
+        raise TypeError()

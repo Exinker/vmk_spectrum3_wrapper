@@ -10,11 +10,13 @@ class Storage(BaseStorage):
     def __init__(self, handler: PipeHandler | None = None) -> None:
         super().__init__(handler=handler)
 
+        self._capacity = 1
+
     @property
     def capacity(self) -> int:
         """"Required `n_frames` to iteration."""
 
-        return 1
+        return self._capacity
 
     def put(self, frame: Array[Digit]) -> None:
         """Add the frame to storage."""
