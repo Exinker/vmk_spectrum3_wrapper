@@ -283,15 +283,14 @@ class Device:
     def __repr__(self) -> str:
         cls = self.__class__
 
-        return '{name}({content})'.format(
+        return '{name}(\n{content}\n)'.format(
             name=cls.__name__,
-            content=', '.join([
-                '`{assembly}`'.format(
-                    assembly=str(self.status),
+            content='\n'.join([
+                '\tstatus: {status},'.format(
+                    status=str(self.status),
                 ),
-                'exposure: {exposure}{units}'.format(
-                    exposure='None' if self._read_config is None else f'{self._read_config}',
-                    units='' if self._read_config is None else 'ms',
+                '\tsetup: [{config}],'.format(
+                    config=self._read_config,
                 ),
             ]),
         )

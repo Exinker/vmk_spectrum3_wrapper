@@ -65,18 +65,21 @@ class ReadConfig:
 
         raise TypeError()
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         cls = self.__class__
 
+        return f'{cls.__name__}({self})'
+
+
+    def __str__(self) -> str:
+
         if isinstance(self.exposure, float):
-            content = f'{self.exposure}'
-            return f'{cls.__name__}({content})'
+            return f'{self.exposure}'
 
         if isinstance(self.exposure, tuple):
-            content = '; '.join([
+            return '; '.join([
                 f'({exposure}, {capacity})'
                 for exposure, capacity in zip(self.exposure, self.capacity)
             ])
-            return f'{cls.__name__}({content})'
 
         raise TypeError()
