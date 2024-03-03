@@ -14,9 +14,17 @@ class Handler(BaseHandler):
 class ScaleHandler(Handler):
     """Handler to scale a data from `Units.digit` to `units`"""
 
-    def __init__(self, units: Units):
-        self.units = units
-        self.scale = get_scale(units)
+    def __init__(self, units: Units | None = None):
+        self._units = units or Units.percent
+        self._scale = get_scale(units)
+
+    @property
+    def units(self) -> Units:
+        return self._units
+
+    @property
+    def scale(self) -> float:
+        return self._scale
 
     # --------        private        --------
     def __call__(self, data: Array[Digit], *args, **kwargs) -> Array[T]:
