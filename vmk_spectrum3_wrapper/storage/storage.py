@@ -1,17 +1,14 @@
 import time
 
-import numpy as np
-
 from vmk_spectrum3_wrapper.handler import PipeHandler
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
-from vmk_spectrum3_wrapper.typing import Array, Digit, Second
-from vmk_spectrum3_wrapper.units import Units, get_scale
+from vmk_spectrum3_wrapper.typing import Array, Digit
 
 
 class Storage(BaseStorage):
 
     def __init__(self, handler: PipeHandler | None = None) -> None:
-        super().__(handler=handler)
+        super().__init__(handler=handler)
 
     @property
     def capacity(self) -> int:
@@ -31,10 +28,8 @@ class Storage(BaseStorage):
         self._finished_at = time_at
 
         # data
-        frame = frame.reshape(1, -1)
-        frame = self.handler(frame) if self.handler else frame
-
-        self._data.append(frame)
+        datum = self.handler(frame.reshape(1, -1))
+        self._data.append(datum.flatten())
 
     def clear(self) -> None:
         """Clear storage."""

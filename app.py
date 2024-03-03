@@ -16,7 +16,7 @@ if __name__ == '__main__':
     #
     for i in range(n_frames):
         plt.plot(
-            data[i].flatten(),
+            data[i],
             linewidth=1,
             label=f'frame: {i+1}',
         )

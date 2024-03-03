@@ -1,11 +1,9 @@
 from collections.abc import Sequence
-import time
 
-import numpy as np
-
-from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
 from vmk_spectrum3_wrapper.handler import BufferHandler, Handler, ScaleHandler
-from vmk_spectrum3_wrapper.typing import Array, Digit, Second, T
+from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
+from vmk_spectrum3_wrapper.typing import Array, Digit, T
+from vmk_spectrum3_wrapper.units import Units
 
 
 class PipeHandler(BaseHandler):

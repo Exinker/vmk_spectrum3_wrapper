@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod, abstractproperty
 
+import numpy as np
+
 from vmk_spectrum3_wrapper.handler import PipeHandler
-from vmk_spectrum3_wrapper.typing import Array, T
+from vmk_spectrum3_wrapper.typing import Array, Digit, Second
+from vmk_spectrum3_wrapper.units import Units
 
 
 class BaseStorage(ABC):
@@ -22,12 +25,16 @@ class BaseStorage(ABC):
         return self._finished_at - self._started_at
 
     @property
-    def handler(self) -> PipeHandler | None:
+    def handler(self) -> PipeHandler:
         return self._handler
 
     @property
     def data(self) -> list[Array[Digit]]:
         return self._data
+
+    @property
+    def units(self) -> Units:
+        return self.handler.units
 
     def pull(self, clear: bool = True) -> Array[Digit]:
         """Pull data from storage."""

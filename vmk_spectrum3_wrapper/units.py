@@ -1,9 +1,6 @@
 from enum import Enum
-from typing import TypeVar
 
 from vmk_spectrum3_wrapper.typing import Electron, T
-
-
 
 
 class Units(Enum):

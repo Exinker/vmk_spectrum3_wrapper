@@ -1,9 +1,7 @@
-from typing import Callable
-
 import numpy as np
 
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
-from vmk_spectrum3_wrapper.typing import Array, Digit, T
+from vmk_spectrum3_wrapper.typing import Array, T
 
 
 class BufferHandler(BaseHandler):

@@ -1,7 +1,3 @@
-from typing import Callable
-
-import numpy as np
-
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
 from vmk_spectrum3_wrapper.typing import Array, Digit, T
 from vmk_spectrum3_wrapper.units import Units, get_scale
@@ -16,7 +12,7 @@ class ScaleHandler(Handler):
 
     def __init__(self, units: Units | None = None):
         self._units = units or Units.percent
-        self._scale = get_scale(units)
+        self._scale = get_scale(self.units)
 
     @property
     def units(self) -> Units:

@@ -1,15 +1,14 @@
 import time
-from typing import Callable
+from collections.abc import Sequence
 
 import numpy as np
 
 from vmk_spectrum3_wrapper.handler import BufferHandler, PipeHandler
-from vmk_spectrum3_wrapper.storage.storage.base_storage import BaseStorage
-from vmk_spectrum3_wrapper.typing import Array, Digit, Second
-from vmk_spectrum3_wrapper.units import Units, get_scale
+from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
+from vmk_spectrum3_wrapper.typing import Array
 
 
-class BufferStorage(Storage):
+class BufferStorage(BaseStorage):
 
     def __init__(self, handler: PipeHandler, capacity: int | tuple[int, int]) -> None:
         if isinstance(handler, PipeHandler):
@@ -52,17 +51,14 @@ class BufferStorage(Storage):
         self._finished_at = time_at
 
         # buffer
-        frame = frame.reshape(1, -1)
-        self._buffer.append(frame)
+        self._buffer.append(frame.reshape(1, -1))
 
         # data
         if len(self.buffer) == self.capacity:  # если буфер заполнен, то ранные обрабатываются `handler`, передаются в `data` и буфер очищается
 
             try:
-                buffer = np.array(self.buffer)
-                buffer = self.handler(buffer)
-
-                self._data.append(buffer)
+                datum = self.handler(np.array(self.buffer))
+                self._data.append(datum.flatten())
 
             finally:
                 self._buffer.clear()
