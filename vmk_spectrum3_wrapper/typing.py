@@ -20,6 +20,7 @@ Hz = NewType('Hz', float)
 
 # --------        spacial units        --------
 Meter = NewType('Meter', float)
+MicroMeter = NewType('MicroMeter', float)
 NanoMeter = NewType('NanoMeter', float)
 
 Number = NewType('Number', float)
