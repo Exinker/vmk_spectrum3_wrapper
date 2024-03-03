@@ -11,10 +11,11 @@ from vmk_spectrum3_wrapper.units import Units, get_scale
 
 class BufferStorage(Storage):
 
-    def __init__(self, handler: BufferHandler | PipeHandler, capacity: int) -> None:
+    def __init__(self, handler: BufferHandler | PipeHandler, capacity: int | tuple[int, int]) -> None:
         if isinstance(handler, PipeHandler):
             assert any(isinstance(h, BufferHandler) for h in handler), 'PipeHandler should contains one BufferHandler at least!'
-        assert capacity > 1  # TODO: add message
+        if isinstance(capacity, int):
+            assert capacity > 1  # TODO: add message
 
         #
         self._handler = handler
@@ -35,6 +36,7 @@ class BufferStorage(Storage):
 
     @property
     def capacity(self) -> int:
+        """Размер буфера."""
         return self._capacity
 
     # --------        data        --------

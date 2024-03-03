@@ -22,3 +22,10 @@ class AverageHandler(BufferHandler):
     # --------        private        --------
     def __call__(self, data: Array[T]) -> Array[T]:
         return np.mean(data, axis=0)
+
+
+class HighDynamicRangeHandler(BufferError):
+
+    # --------        private        --------
+    def __call__(self, data: Array[T], shapa: tuple[int, int], detector: Detector) -> Array[T]:
+        return np.mean(data, axis=0)

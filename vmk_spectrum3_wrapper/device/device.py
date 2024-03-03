@@ -147,7 +147,7 @@ class Device:
 
         else:
             self._read_config = config
-            time.sleep(self._to_second(self._change_exposure_delay))  # delay after exposure update
+            time.sleep(self._change_exposure_delay / 1000)  # delay after exposure update
 
             if self.verbose:
                 message = f'Setup: {self._read_config}!'
@@ -159,10 +159,6 @@ class Device:
     @property
     def exposure(self) -> MilliSecond | None:
         return self._exposure
-
-    @staticmethod
-    def _to_second(__exposure: MilliSecond) -> Second:
-        return __exposure / 1000
 
     # --------        storage        --------
     @property

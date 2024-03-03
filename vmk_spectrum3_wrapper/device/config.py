@@ -29,6 +29,14 @@ DeviceConfig: TypeAlias = DeviceConfigAuto | DeviceConfigEthernet
 # --------        read config        --------
 class BaseReadConfig(ABC):
 
+    # @abstractproperty
+    # def total_duration(self) -> MilliSecond:
+    #     raise NotImplementedError
+
+    @abstractproperty
+    def total_counts(self) -> int:
+        raise NotImplementedError
+
     @staticmethod
     def to_microsecond(__exposure: MilliSecond) -> MicroSecond:
         value = int(np.round(1000 * __exposure).astype(int))
@@ -38,10 +46,6 @@ class BaseReadConfig(ABC):
         )
 
         return value
-
-    @abstractproperty
-    def total_frames(self) -> int:
-        raise NotImplementedError
 
     # --------        private        --------
     @abstractmethod
@@ -59,7 +63,7 @@ class StandardReadConfig(BaseReadConfig):
         self.exposure = exposure
 
     @property
-    def total_frames(self) -> int:
+    def total_counts(self) -> int:
         return 1
 
     # --------        private        --------
@@ -81,7 +85,7 @@ class ExtendedReadConfig(BaseReadConfig):
         self.exposure = exposure
 
     @property
-    def total_frames(self) -> int:
+    def total_counts(self) -> int:
         return sum(self.n_frames)
 
     # --------        private        --------
