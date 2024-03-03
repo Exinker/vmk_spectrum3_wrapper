@@ -18,11 +18,11 @@ class PipeHandler(BaseHandler):
         return self._handlers
 
     # --------        private        --------
-    def __call__(self, data: Array[Digit]) -> Array[T]:
+    def __call__(self, data: Array[Digit], *args, **kwargs) -> Array[T]:
         data = data.copy()
 
         for handler in self.handlers:
-            data = handler(data)
+            data = handler(data, *args, **kwargs)
 
         return data
 

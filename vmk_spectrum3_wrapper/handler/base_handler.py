@@ -7,5 +7,5 @@ class BaseHandler(ABC):
 
     # --------        private        --------
     @abstractmethod
-    def __call__(self, data: Array[T]) -> Array[T]:
+    def __call__(self, data: Array[T], *args, **kwargs) -> Array[T]:
         raise NotImplementedError

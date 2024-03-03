@@ -13,12 +13,12 @@ class BufferHandler(BaseHandler):
 class IntegralHandler(BufferHandler):
 
     # --------        private        --------
-    def __call__(self, data: Array[T]) -> Array[T]:
+    def __call__(self, data: Array[T], *args, **kwargs) -> Array[T]:
         return np.sum(data, axis=0)
 
 
 class AverageHandler(BufferHandler):
 
     # --------        private        --------
-    def __call__(self, data: Array[T]) -> Array[T]:
+    def __call__(self, data: Array[T], *args, **kwargs) -> Array[T]:
         return np.mean(data, axis=0)

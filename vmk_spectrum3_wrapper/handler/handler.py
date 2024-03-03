@@ -19,5 +19,5 @@ class ScaleHandler(Handler):
         self.scale = get_scale(units)
 
     # --------        private        --------
-    def __call__(self, data: Array[Digit]) -> Array[T]:
+    def __call__(self, data: Array[Digit], *args, **kwargs) -> Array[T]:
         return self.scale*data
