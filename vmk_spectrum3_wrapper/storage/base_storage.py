@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 
 from vmk_spectrum3_wrapper.handler import PipeHandler
 from vmk_spectrum3_wrapper.typing import Array, T
@@ -38,6 +38,11 @@ class BaseStorage(ABC):
         finally:
             if clear:
                 self.clear()
+
+    @abstractproperty
+    def capacity(self) -> int:
+        """"Required `n_frames` to iteration."""
+        raise NotImplementedError
 
     @abstractmethod
     def put(self, frame: Array[Digit]) -> None:
