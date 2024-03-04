@@ -38,7 +38,7 @@ Digit = NewType('Digit', float)
 Electron = NewType('Electron', float)
 Percent = NewType('Percent', float)
 
-T = TypeVar('T', Digit, Electron, Percent)
+T = TypeVar('T', Electron, Percent)
 
 
 # --------        other units        --------

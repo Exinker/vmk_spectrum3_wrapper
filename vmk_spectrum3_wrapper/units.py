@@ -1,5 +1,6 @@
 from enum import Enum
 
+from vmk_spectrum3_wrapper.device import ADC_RESOLUTION
 from vmk_spectrum3_wrapper.typing import Electron, T
 
 
@@ -15,8 +16,7 @@ def get_clipping(units: Units) -> T:
 
     match units:
         case Units.digit:
-            adc = 16
-            return 2**adc - 1
+            return 2**ADC_RESOLUTION - 1
         case Units.percent:
             return 100
         case Units.electron:
@@ -57,8 +57,7 @@ def to_electron(value: T, units: Units, capacity: Electron) -> Electron:
 
     match units:
         case Units.digit:
-            adc = 16
-            return capacity * (value/(2**adc - 1))
+            return capacity * (value/(2**ADC_RESOLUTION - 1))
         case Units.percent:
             return capacity * (value/100)
         case Units.electron:

@@ -151,12 +151,12 @@ class Device:
             time.sleep(duration)  # delay after exposure update
 
             if self.verbose:
-                message = f'Setup exposure: {self.exposure} ms!'
+                message = f'Setup config: {self._read_config}'
                 print(message)
-    
+
         # setup storage
         self.storage.clear()
-        self.storage._exposure = exposure
+        self.storage._exposure = exposure  # FIXME: !
 
         return self
 
@@ -216,8 +216,13 @@ class Device:
             return self
 
         # read data
-        self._device.read(n_iters * self.storage.capacity)
+        n_frames = n_iters * self.storage.capacity
+        if self.verbose:
+            print(f'n_frames: {n_frames}')
 
+        self._device.read(n_frames)
+
+        # block
         if blocking:
             time.sleep(timeout)  # FIXME: нужна задержка, так как статуc не всегда успевает измениться
 
@@ -231,9 +236,9 @@ class Device:
     def _on_frame(self, frame: Array[int]) -> None:
         self.storage.put(frame)
 
-        # # verbose
-        # if self.verbose:
-        #     print('on_frame:', len(frame), flush=True)
+        # verbose
+        if self.verbose:
+            print('on_frame:', len(frame), flush=True)
 
     def _on_status(self, status: Mapping[IP, ps3.AssemblyStatus]) -> None:
         self._status = status

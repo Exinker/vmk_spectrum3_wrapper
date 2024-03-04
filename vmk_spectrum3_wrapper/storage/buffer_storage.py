@@ -3,14 +3,17 @@ from collections.abc import Sequence
 
 import numpy as np
 
+from vmk_spectrum3_wrapper.data import Data, Meta
+from vmk_spectrum3_wrapper.device import ADC_RESOLUTION
 from vmk_spectrum3_wrapper.handler import BufferHandler, PipeHandler
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
 from vmk_spectrum3_wrapper.typing import Array
+from vmk_spectrum3_wrapper.units import Units
 
 
 class BufferStorage(BaseStorage):
 
-    def __init__(self, handler: PipeHandler, capacity: int | tuple[int, int]) -> None:
+    def __init__(self, capacity: int | tuple[int, int], handler: PipeHandler | None = None) -> None:
         if isinstance(handler, PipeHandler):
             assert any(isinstance(h, BufferHandler) for h in handler), 'PipeHandler should contains one BufferHandler at least!'
         if isinstance(capacity, int):
@@ -51,22 +54,37 @@ class BufferStorage(BaseStorage):
         self._finished_at = time_at
 
         # buffer
-        self._buffer.append(frame.reshape(1, -1))
+        self.buffer.append(frame)
 
         # data
         if len(self.buffer) == self.capacity:  # если буфер заполнен, то ранные обрабатываются `handler`, передаются в `data` и буфер очищается
 
             try:
-                datum = self.handler(data=np.array(self.buffer), capacity=self._capacity, exposure=self._exposure)
-                self._data.append(datum.flatten())
+                intensity = np.array(self.buffer)
+                mask = intensity == (2**ADC_RESOLUTION - 1)
+
+                datum = Data(
+                    intensity=intensity,
+                    mask=mask,
+                    units=Units.digit,
+                    meta=Meta(
+                        capacity=self._capacity,
+                        exposure=self._exposure,
+                        started_at=None,
+                        finished_at=time_at,
+                    ),
+                )
+                datum = self.handler(datum)
+
+                self._data.append(datum)
 
             finally:
-                self._buffer.clear()
+                self.buffer.clear()
 
     def clear(self) -> None:
         """Clear buffer and data."""
-        self._buffer.clear()
-        self._data.clear()
+        self.buffer.clear()
+        self.data.clear()
 
     # --------        private        --------
     def __len__(self) -> int:

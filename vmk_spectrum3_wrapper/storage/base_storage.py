@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod, abstractproperty
 
-import numpy as np
-
+from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.handler import PipeHandler
-from vmk_spectrum3_wrapper.typing import Array, Digit, Second
+from vmk_spectrum3_wrapper.typing import Second
 from vmk_spectrum3_wrapper.units import Units
 
 
@@ -12,13 +11,13 @@ class BaseStorage(ABC):
     def __init__(self, handler: PipeHandler | None = None):
         self._handler = handler or PipeHandler()
 
-        self._started_at = None  # время начала измерения первого кадра
-        self._finished_at = None  # время начала измерения последнего кадра
+        self._started_at = None  # время окончания измерения первого кадра
+        self._finished_at = None  # время окончания измерения последнего кадра
         self._data = []
 
     @property
     def duration(self) -> Second:
-        """Время с начала измерения (от начала измерения первого до начала измерения последнего кадра!)."""
+        """Время измерения (от окончания измерения первого до окончания измерения последнего кадра!)."""
         if self._started_at is None:
             return 0
 
@@ -29,18 +28,18 @@ class BaseStorage(ABC):
         return self._handler
 
     @property
-    def data(self) -> list[Array[Digit]]:
+    def data(self) -> list[Data]:
         return self._data
 
     @property
     def units(self) -> Units:
         return self.handler.units
 
-    def pull(self, clear: bool = True) -> Array[Digit]:
+    def pull(self, clear: bool = True) -> Data:
         """Pull data from storage."""
 
         try:
-            return np.array(self.data)
+            return self.data.copy()
 
         finally:
             if clear:
@@ -52,7 +51,7 @@ class BaseStorage(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def put(self, frame: Array[Digit]) -> None:
+    def put(self, frame: Data) -> None:
         """Add the frame to storage."""
         raise NotImplementedError
 

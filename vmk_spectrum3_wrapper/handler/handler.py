@@ -1,5 +1,5 @@
+from vmk_spectrum3_wrapper.data import Data, Meta
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
-from vmk_spectrum3_wrapper.typing import Array, Digit, T
 from vmk_spectrum3_wrapper.units import Units, get_scale
 
 
@@ -23,5 +23,17 @@ class ScaleHandler(Handler):
         return self._scale
 
     # --------        private        --------
-    def __call__(self, data: Array[Digit], *args, **kwargs) -> Array[T]:
-        return self.scale*data
+    def __call__(self, data: Data, *args, **kwargs) -> Data:
+        assert data.units == Units.digit, 'ScaleHandler: {data.units} is not valid! Only `digit` is supported!'
+
+        return Data(
+            intensity=self.scale*data.intensity,
+            mask=data.mask,
+            units=self.units,
+            meta=Meta(
+                capacity=data.meta.capacity,
+                exposure=data.meta.exposure,
+                started_at=data.meta.started_at,
+                finished_at=data.meta.finished_at,
+            ),
+        )

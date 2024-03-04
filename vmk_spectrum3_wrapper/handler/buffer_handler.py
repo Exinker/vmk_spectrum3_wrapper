@@ -1,8 +1,7 @@
 import numpy as np
 
-from vmk_spectrum3_wrapper.detector import Detector
+from vmk_spectrum3_wrapper.data import Data, Meta
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
-from vmk_spectrum3_wrapper.typing import Array, MilliSecond, T
 
 
 class BufferHandler(BaseHandler):
@@ -12,15 +11,39 @@ class BufferHandler(BaseHandler):
 class IntegralHandler(BufferHandler):
 
     # --------        private        --------
-    def __call__(self, data: Array[T], *args, **kwargs) -> Array[T]:
-        return np.sum(data, axis=0)
+    def __call__(self, data: Data, *args, **kwargs) -> Data:
+        assert data.n_times > 1, 'Buffered data are supported only!'
+
+        return Data(
+            intensity=np.sum(data.intensity, axis=0),
+            mask=np.max(data.mask, axis=0),
+            units=data.units,
+            meta=Meta(
+                capacity=data.n_times,
+                exposure=data.meta.exposure,
+                started_at=data.meta.started_at,
+                finished_at=data.meta.finished_at,
+            ),
+        )
 
 
 class AverageHandler(BufferHandler):
 
     # --------        private        --------
-    def __call__(self, data: Array[T], *args, **kwargs) -> Array[T]:
-        return np.mean(data, axis=0)
+    def __call__(self, data: Data, *args, **kwargs) -> Data:
+        assert data.n_times > 1, 'Buffered data are supported only!'
+
+        return Data(
+            intensity=np.mean(data.intensity, axis=0),
+            mask=np.max(data.mask, axis=0),
+            units=data.units,
+            meta=Meta(
+                capacity=data.n_times,
+                exposure=data.meta.exposure,
+                started_at=data.meta.started_at,
+                finished_at=data.meta.finished_at,
+            ),
+        )
 
 
 # --------        high dynamic range (HDR) handlers        --------
@@ -30,11 +53,16 @@ class HighDynamicRangeHandler(BufferHandler):
         self.is_naive = is_naive
 
     # --------        private        --------
-    def __call__(self, data: Array[T], capacity: tuple[int, int], exposure: tuple[MilliSecond, MilliSecond], *args, **kwargs) -> Array[T]:
-        exposure_max = max(exposure)
+    def __call__(self, data: Data, *args, **kwargs) -> Data:
+        assert data.n_times > 1, 'Buffered data are supported only!'
+        assert isinstance(data.capacity, tuple), ''  # FIXME: add custom assertion!
 
-        data[data >= 100] = np.nan  # FIXME: remove it!
-        lelic = (exposure_max / exposure[1]) * np.mean(data[capacity[0]:,:], axis=0)
-        bolic = (exposure_max / exposure[0]) * np.mean(data[:capacity[0],:], axis=0)
+        raise NotImplementedError
 
-        return np.nanmean([lelic, bolic], axis=0)
+        # exposure_max = max(exposure)
+
+        # data[data >= 100] = np.nan  # FIXME: remove it!
+        # lelic = (exposure_max / exposure[1]) * np.mean(data[capacity[0]:,:], axis=0)
+        # bolic = (exposure_max / exposure[0]) * np.mean(data[:capacity[0],:], axis=0)
+
+        # return np.nanmean([lelic, bolic], axis=0)
