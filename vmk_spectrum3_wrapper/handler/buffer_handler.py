@@ -24,11 +24,17 @@ class AverageHandler(BufferHandler):
 
 
 # --------        high dynamic range (HDR) handlers        --------
-class HighDynamicRangeHandler(BufferError):
+class HighDynamicRangeHandler(BufferHandler):
 
     def __init__(self, is_naive: bool = True):
         self.is_naive = is_naive
 
     # --------        private        --------
-    def __call__(self, data: Array[T], capacity: tuple[int, int], exposure: tuple[MilliSecond, MilliSecond], detector: Detector, *args, **kwargs) -> Array[T]:
-        raise NotImplementedError
+    def __call__(self, data: Array[T], capacity: tuple[int, int], exposure: tuple[MilliSecond, MilliSecond], *args, **kwargs) -> Array[T]:
+        exposure_max = max(exposure)
+
+        data[data >= 100] = np.nan  # FIXME: remove it!
+        lelic = (exposure_max / exposure[1]) * np.mean(data[capacity[0]:,:], axis=0)
+        bolic = (exposure_max / exposure[0]) * np.mean(data[:capacity[0],:], axis=0)
+
+        return np.nanmean([lelic, bolic], axis=0)

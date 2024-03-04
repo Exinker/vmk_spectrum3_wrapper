@@ -156,10 +156,7 @@ class Device:
     
         # setup storage
         self.storage.clear()
-
-        if config.mode == ReadMode.extended:
-            pass
-            # self.storage.handler
+        self.storage._exposure = exposure
 
         return self
 

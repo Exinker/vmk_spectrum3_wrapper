@@ -57,7 +57,7 @@ class BufferStorage(BaseStorage):
         if len(self.buffer) == self.capacity:  # если буфер заполнен, то ранные обрабатываются `handler`, передаются в `data` и буфер очищается
 
             try:
-                datum = self.handler(np.array(self.buffer))
+                datum = self.handler(data=np.array(self.buffer), capacity=self._capacity, exposure=self._exposure)
                 self._data.append(datum.flatten())
 
             finally:

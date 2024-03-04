@@ -75,7 +75,9 @@ class ReadConfig:
     def __iter__(self) -> Iterator:
 
         if self.mode == ReadMode.standart:
-            return iter([self.exposure])
+            return iter([
+                to_microsecond(self.exposure),
+            ])
 
         if self.mode == ReadMode.extended:
             return itertools.chain(*[
