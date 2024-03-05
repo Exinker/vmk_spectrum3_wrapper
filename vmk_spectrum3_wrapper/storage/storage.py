@@ -36,12 +36,12 @@ class Storage(BaseStorage):
 
         # data
         intensity = np.array(frame)
-        mask = intensity == (2**ADC_RESOLUTION - 1)
+        clipped = intensity == (2**ADC_RESOLUTION - 1)
 
         datum = Data(
             intensity=intensity,
-            mask=mask,
             units=Units.digit,
+            clipped=clipped,
             meta=Meta(
                 capacity=self._capacity,
                 exposure=self._exposure,

@@ -14,10 +14,13 @@ class IntegralHandler(BufferHandler):
     def __call__(self, data: Data, *args, **kwargs) -> Data:
         assert data.n_times > 1, 'Buffered data are supported only!'
 
+        intensity = np.sum(data.intensity, axis=0)
+        clipped = np.max(data.clipped, axis=0) if isinstance(data.clipped, np.ndarray) else None
+
         return Data(
-            intensity=np.sum(data.intensity, axis=0),
-            mask=np.max(data.mask, axis=0),
+            intensity=intensity,
             units=data.units,
+            clipped=clipped,
             meta=Meta(
                 capacity=data.n_times,
                 exposure=data.meta.exposure,
@@ -33,10 +36,13 @@ class AverageHandler(BufferHandler):
     def __call__(self, data: Data, *args, **kwargs) -> Data:
         assert data.n_times > 1, 'Buffered data are supported only!'
 
+        intensity = np.mean(data.intensity, axis=0)
+        clipped = np.max(data.clipped, axis=0) if isinstance(data.clipped, np.ndarray) else None
+
         return Data(
-            intensity=np.mean(data.intensity, axis=0),
-            mask=np.max(data.mask, axis=0),
+            intensity=intensity,
             units=data.units,
+            clipped=clipped,
             meta=Meta(
                 capacity=data.n_times,
                 exposure=data.meta.exposure,

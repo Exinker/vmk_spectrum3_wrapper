@@ -28,8 +28,8 @@ class ScaleHandler(Handler):
 
         return Data(
             intensity=self.scale*data.intensity,
-            mask=data.mask,
             units=self.units,
+            clipped=data.clipped,
             meta=Meta(
                 capacity=data.meta.capacity,
                 exposure=data.meta.exposure,

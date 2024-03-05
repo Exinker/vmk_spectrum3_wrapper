@@ -59,27 +59,27 @@ class BufferStorage(BaseStorage):
         # data
         if len(self.buffer) == self.capacity:  # если буфер заполнен, то ранные обрабатываются `handler`, передаются в `data` и буфер очищается
 
-            try:
-                intensity = np.array(self.buffer)
-                mask = intensity == (2**ADC_RESOLUTION - 1)
+            #
+            intensity = np.array(self.buffer)
+            clipped = intensity == (2**ADC_RESOLUTION - 1)
 
-                datum = Data(
-                    intensity=intensity,
-                    mask=mask,
-                    units=Units.digit,
-                    meta=Meta(
-                        capacity=self._capacity,
-                        exposure=self._exposure,
-                        started_at=None,
-                        finished_at=time_at,
-                    ),
-                )
-                datum = self.handler(datum)
+            datum = Data(
+                intensity=intensity,
+                units=Units.digit,
+                clipped=clipped,
+                meta=Meta(
+                    capacity=self._capacity,
+                    exposure=self._exposure,
+                    started_at=None,
+                    finished_at=time_at,
+                ),
+            )
+            datum = self.handler(datum)
 
-                self._data.append(datum)
+            self.data.append(datum)
 
-            finally:
-                self.buffer.clear()
+            #
+            self.buffer.clear()
 
     def clear(self) -> None:
         """Clear buffer and data."""
