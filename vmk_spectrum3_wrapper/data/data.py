@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 from vmk_spectrum3_wrapper.data.meta import Meta
@@ -34,3 +35,21 @@ class Data:
     def number(self) -> Array[int]:
         """external index of spectrum."""
         return np.arange(self.n_numbers)
+
+    #
+    def show(self) -> None:
+        fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
+
+        plt.step(
+            self.number, self.intensity,
+            where='mid',
+            color='black', linestyle='-', linewidth=1,
+        )
+        plt.plot(
+            self.number[self.mask], self.intensity[self.mask],
+            color='red', linestyle='none', marker='.',
+        )
+
+        plt.xlabel('Номер отсчета')
+        plt.ylabel('Интенсивность, отн. ед.')
+        plt.show()
