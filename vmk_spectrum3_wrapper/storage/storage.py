@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 
-from vmk_spectrum3_wrapper.data import Data, Meta
+from vmk_spectrum3_wrapper.data import Datum, Meta
 from vmk_spectrum3_wrapper.device import ADC_RESOLUTION
 from vmk_spectrum3_wrapper.handler import PipeHandler
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
@@ -38,7 +38,7 @@ class Storage(BaseStorage):
         intensity = np.array(frame)
         clipped = intensity == (2**ADC_RESOLUTION - 1)
 
-        datum = Data(
+        datum = Datum(
             intensity=intensity,
             units=Units.digit,
             clipped=clipped,

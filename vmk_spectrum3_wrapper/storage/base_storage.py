@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod, abstractproperty
 
-from vmk_spectrum3_wrapper.data import Data
+from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.handler import PipeHandler
 from vmk_spectrum3_wrapper.typing import Second
 from vmk_spectrum3_wrapper.units import Units
@@ -28,14 +28,14 @@ class BaseStorage(ABC):
         return self._handler
 
     @property
-    def data(self) -> list[Data]:
+    def data(self) -> list[Datum]:
         return self._data
 
     @property
     def units(self) -> Units:
         return self.handler.units
 
-    def pull(self, clear: bool = True) -> Data:
+    def pull(self, clear: bool = True) -> Datum:
         """Pull data from storage."""
 
         try:
@@ -51,7 +51,7 @@ class BaseStorage(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def put(self, frame: Data) -> None:
+    def put(self, frame: Datum) -> None:
         """Add the frame to storage."""
         raise NotImplementedError
 

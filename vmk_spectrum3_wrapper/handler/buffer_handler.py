@@ -1,6 +1,6 @@
 import numpy as np
 
-from vmk_spectrum3_wrapper.data import Data, Meta
+from vmk_spectrum3_wrapper.data import Datum, Meta
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
 
 
@@ -11,13 +11,13 @@ class BufferHandler(BaseHandler):
 class IntegralHandler(BufferHandler):
 
     # --------        private        --------
-    def __call__(self, data: Data, *args, **kwargs) -> Data:
+    def __call__(self, data: Datum, *args, **kwargs) -> Datum:
         assert data.n_times > 1, 'Buffered data are supported only!'
 
         intensity = np.sum(data.intensity, axis=0)
         clipped = np.max(data.clipped, axis=0) if isinstance(data.clipped, np.ndarray) else None
 
-        return Data(
+        return Datum(
             intensity=intensity,
             units=data.units,
             clipped=clipped,
@@ -33,13 +33,13 @@ class IntegralHandler(BufferHandler):
 class AverageHandler(BufferHandler):
 
     # --------        private        --------
-    def __call__(self, data: Data, *args, **kwargs) -> Data:
+    def __call__(self, data: Datum, *args, **kwargs) -> Datum:
         assert data.n_times > 1, 'Buffered data are supported only!'
 
         intensity = np.mean(data.intensity, axis=0)
         clipped = np.max(data.clipped, axis=0) if isinstance(data.clipped, np.ndarray) else None
 
-        return Data(
+        return Datum(
             intensity=intensity,
             units=data.units,
             clipped=clipped,
@@ -59,7 +59,7 @@ class HighDynamicRangeHandler(BufferHandler):
         self.is_naive = is_naive
 
     # --------        private        --------
-    def __call__(self, data: Data, *args, **kwargs) -> Data:
+    def __call__(self, data: Datum, *args, **kwargs) -> Datum:
         assert data.n_times > 1, 'Buffered data are supported only!'
         assert isinstance(data.capacity, tuple), ''  # FIXME: add custom assertion!
 

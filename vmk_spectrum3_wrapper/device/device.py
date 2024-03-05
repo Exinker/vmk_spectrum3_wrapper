@@ -5,6 +5,7 @@ from typing import Mapping
 
 import pyspectrum3 as ps3
 
+from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, ReadConfig, ReadMode
 from vmk_spectrum3_wrapper.device.exceptions import CreateDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, StatusTypeError, eprint
 from vmk_spectrum3_wrapper.storage import Storage
@@ -198,7 +199,7 @@ class Device:
         raise StatusTypeError(f'Status type {type(__status)} is not supported yet!')
 
     # --------        read        --------
-    def read(self, n_iters: int, blocking: bool = True, timeout: Second = 1e-2) -> Array[int] | None:
+    def read(self, n_iters: int, blocking: bool = True, timeout: Second = 1e-2) -> Data | None:
         """Прочитать `n_iters` раз и вернуть данные (blocking), или прочитать `n_iters` раз в `storage` (non blocking)."""
 
         # pass checks
@@ -230,7 +231,7 @@ class Device:
                 while not self.is_status(ps3.AssemblyStatus.ALIVE):
                     self.condition.wait(timeout)
 
-            return self.storage.pull()
+            return Data(self.storage.pull())
 
     # --------        callbacks        --------
     def _on_frame(self, frame: Array[int]) -> None:

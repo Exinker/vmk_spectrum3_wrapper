@@ -1,4 +1,4 @@
-from vmk_spectrum3_wrapper.data import Data, Meta
+from vmk_spectrum3_wrapper.data import Datum, Meta
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
 from vmk_spectrum3_wrapper.units import Units, get_scale
 
@@ -23,10 +23,10 @@ class ScaleHandler(Handler):
         return self._scale
 
     # --------        private        --------
-    def __call__(self, data: Data, *args, **kwargs) -> Data:
+    def __call__(self, data: Datum, *args, **kwargs) -> Datum:
         assert data.units == Units.digit, 'ScaleHandler: {data.units} is not valid! Only `digit` is supported!'
 
-        return Data(
+        return Datum(
             intensity=self.scale*data.intensity,
             units=self.units,
             clipped=data.clipped,

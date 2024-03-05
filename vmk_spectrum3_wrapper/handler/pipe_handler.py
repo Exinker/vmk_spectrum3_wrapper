@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from vmk_spectrum3_wrapper.data import Data
+from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.handler import BufferHandler, Handler, ScaleHandler
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
 from vmk_spectrum3_wrapper.units import Units
@@ -25,7 +25,7 @@ class PipeHandler(BaseHandler):
         return self.handlers[0].units
 
     # --------        private        --------
-    def __call__(self, data: Data, *args, **kwargs) -> Data:
+    def __call__(self, data: Datum, *args, **kwargs) -> Datum:
 
         for handler in self.handlers:
             data = handler(data, *args, **kwargs)
