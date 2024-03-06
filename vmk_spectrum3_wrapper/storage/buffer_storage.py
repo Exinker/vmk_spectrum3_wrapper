@@ -7,41 +7,38 @@ from vmk_spectrum3_wrapper.data import Datum, Meta
 from vmk_spectrum3_wrapper.device import ADC_RESOLUTION
 from vmk_spectrum3_wrapper.handler import BufferHandler, PipeHandler
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
-from vmk_spectrum3_wrapper.typing import Array
+from vmk_spectrum3_wrapper.typing import Array, MilliSecond
 from vmk_spectrum3_wrapper.units import Units
 
 
 class BufferStorage(BaseStorage):
 
-    def __init__(self, capacity: int | tuple[int, int], handler: PipeHandler | None = None) -> None:
+    def __init__(self, handler: PipeHandler | None = None) -> None:
         if isinstance(handler, PipeHandler):
             assert any(isinstance(h, BufferHandler) for h in handler), 'PipeHandler should contains one BufferHandler at least!'
-        if isinstance(capacity, int):
-            assert capacity > 1  # TODO: add message
 
         #
         super().__init__(handler=handler)
 
         self._buffer = []
-        self._capacity = capacity
 
-    # --------        buffer        --------
     @property
     def buffer(self) -> list[Array[int]]:
         return self._buffer
 
-    @property
-    def capacity(self) -> int:
-        """"Required `n_frames` to iteration."""
+    # @property
+    # def capacity(self) -> int | tuple[int, int]:
+    #     """"Required `n_frames` to iteration."""
+    #     return self._exposure
 
-        if isinstance(self._capacity, int):
-            return self._capacity
-        if isinstance(self._capacity, Sequence):
-            return sum(self._capacity)
+    #     if isinstance(self._capacity, int):
+    #         return self._capacity
+    #     if isinstance(self._capacity, Sequence):
+    #         return sum(self._capacity)
 
-        raise TypeError(f'Capacity: {type(self._capacity)} is not supported yet!')
+    #     raise TypeError(f'Capacity: {type(self._capacity)} is not supported yet!')
 
-    # --------        data        --------
+    # --------        handlers        --------
     def put(self, frame: Array[int]) -> None:
         """Добавить новый кадр `frame` в буфер."""
 

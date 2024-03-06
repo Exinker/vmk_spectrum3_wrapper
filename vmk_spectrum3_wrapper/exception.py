@@ -9,7 +9,11 @@ class DeviceError(Exception):
     pass
 
 
-class CreateDeviceError(DeviceError):
+class ConnectionDeviceError(Exception):
+    pass
+
+
+class ReadDeviceError(Exception):
     pass
 
 
@@ -21,16 +25,12 @@ class StatusDeviceError(DeviceError):
     pass
 
 
-class ReadDeviceError(Exception):
+# --------        storage        --------
+class StorageError(Exception):
     pass
 
 
-class ConnectionDeviceError(Exception):
-    pass
-
-
-# --------        status        --------
-class StatusTypeError(Exception):
+class SetupStorageError(StorageError):
     pass
 
 
