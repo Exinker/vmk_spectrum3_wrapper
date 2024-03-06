@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 
 from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.exception import SetupStorageError

@@ -7,7 +7,7 @@ import pyspectrum3 as ps3
 
 from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, ReadConfig, ReadMode
-from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, StatusDeviceError, eprint
+from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
 from vmk_spectrum3_wrapper.handler import PipeHandler
 from vmk_spectrum3_wrapper.storage import Storage
 from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond, Second
@@ -163,7 +163,7 @@ class Device:
 
         return self
 
-    def read(self, n_iters: int, blocking: bool = True, timeout: Second = 1e-2) -> Data | None:
+    def read(self, n_iters: int, blocking: bool = True, timeout: Second = 1e-1) -> Data | None:
         """Прочитать `n_iters` раз и вернуть данные (blocking), или прочитать `n_iters` раз в `storage` (non blocking)."""
 
         # pass checks
@@ -194,7 +194,7 @@ class Device:
                 while not self.is_status(ps3.AssemblyStatus.ALIVE):
                     self.condition.wait(timeout)
 
-            return Data(self.storage.pull())
+            return Data.squeeze(self.storage.pull())
 
     def is_status(self, __status: ps3.AssemblyStatus | Sequence[ps3.AssemblyStatus]) -> bool:
 

@@ -1,8 +1,9 @@
 from collections.abc import Sequence
 
 from vmk_spectrum3_wrapper.data import Datum
-from vmk_spectrum3_wrapper.handler import BufferHandler, Handler, ScaleHandler
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
+from vmk_spectrum3_wrapper.handler.buffer_handler import BufferHandler
+from vmk_spectrum3_wrapper.handler.handler import Handler, ScaleHandler
 from vmk_spectrum3_wrapper.units import Units
 
 

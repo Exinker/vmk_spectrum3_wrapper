@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from typing import overload
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,13 +10,27 @@ from vmk_spectrum3_wrapper.typing import Array, T
 from vmk_spectrum3_wrapper.units import Units
 
 
+@overload
+def reshape(values: Array[T]) -> Array[T]: ...
+@overload
+def reshape(values: None) -> None: ...
+def reshape(values):
+
+    if values is None:
+        return None
+    if (values.ndim == 2) and (values.shape[0] == 1):
+        return values.flatten()
+
+    return values
+
+
 class BaseData(ABC):
 
-    intensity: Array[T]
-    units: Units
-
-    clipped: Array[bool] | None = None
-    meta: Meta | None = None
+    def __init__(self, intensity: Array[T], units: Units, clipped: Array[bool] | None = None, meta: Meta | None = None):
+        self.intensity = intensity
+        self.units = units
+        self.clipped = clipped
+        self.meta = meta
 
     @property
     def n_times(self) -> int:
@@ -42,15 +57,86 @@ class BaseData(ABC):
     def show(self) -> None:
         raise NotImplementedError
 
+    # --------        private        --------
+    def __add__(self, other: T | Array[T] | 'BaseData') -> 'BaseData':
+        cls = self.__class__
+
+        print(cls.__name__, cls)
+
+        #
+        if isinstance(other, float):
+            intensity = np.full(other, (self.n_times, self.n_number))
+            clipped = np.full(False, (self.n_times, self.n_number))
+
+        if isinstance(other, np.ndarray):
+            assert self.n_numbers == len(other)
+
+            intensity = other
+            clipped = np.full(False, other.shape)
+
+        if isinstance(other, BaseData):
+            assert other.n_times == self.n_times
+            assert other.n_numbers == self.n_numbers
+            assert other.units == self.units
+
+            intensity = other.intensity
+            clipped = other.clipped
+
+        #
+        return cls(
+            intensity=self.intensity + intensity,
+            units=self.units,
+            clipped=self.clipped & clipped,
+            meta=self.meta,
+        )
+
+    def __iadd__(self, other: T | Array[T] | 'BaseData') -> 'BaseData':
+        return self + other
+
+    def __radd__(self, other: T | Array[T] | 'BaseData') -> 'BaseData':
+        return self + other
+
+    def __sub__(self, other: T | Array[T] | 'BaseData') -> 'BaseData':
+        cls = self.__class__
+
+        #
+        if isinstance(other, float):
+            intensity = np.full(other, (self.n_times, self.n_number))
+            clipped = np.full(False, (self.n_times, self.n_number))
+
+        if isinstance(other, np.ndarray):
+            assert self.n_numbers == len(other)
+
+            intensity = other
+            clipped = np.full(False, other.shape)
+
+        if isinstance(other, BaseData):
+            assert other.n_times == self.n_times
+            assert other.n_numbers == self.n_numbers
+            assert other.units == self.units
+
+            intensity = reshape(other.intensity)
+            clipped = reshape(other.clipped)
+
+        #
+        return cls(
+            intensity=self.intensity - intensity,
+            units=self.units,
+            clipped=self.clipped & clipped,
+            meta=self.meta,
+        )
+
+    def __isub__(self, other: T | Array[T] | 'BaseData') -> 'BaseData':
+        return self - other
+
+    def __rsub__(self, other: T | Array[T] | 'BaseData') -> 'BaseData':
+        return self - other
+
 
 class Datum(BaseData):
 
     def __init__(self, intensity: Array[T], units: Units, clipped: Array[bool] | None = None, meta: Meta | None = None):
-        self.intensity = intensity
-        self.units = units
-
-        self.clipped = clipped
-        self.meta = meta
+        super().__init__(intensity=intensity, units=units, clipped=clipped, meta=meta)
 
     # --------        handlers        --------
     def show(self) -> None:
@@ -80,19 +166,24 @@ class Datum(BaseData):
 
 class Data(BaseData):
 
-    def __init__(self, data: Sequence[Datum]):
-        self.intensity = np.array([datum.intensity for datum in data])
-        self.units = data[0].units
-
-        self.clipped = np.array([datum.clipped for datum in data]) if isinstance(data[0].clipped, np.ndarray) else None
-        self.meta = Meta(
-            capacity=data[0].meta.capacity,
-            exposure=data[0].meta.exposure,
-            started_at=data[0].meta.finished_at,
-            finished_at=data[-1].meta.finished_at,
-        )
+    def __init__(self, intensity: Array[T], units: Units, clipped: Array[bool] | None = None, meta: Meta | None = None):
+        super().__init__(intensity=intensity, units=units, clipped=clipped, meta=meta)
 
     # --------        handlers        --------
+    @classmethod
+    def squeeze(cls, data: Sequence[Datum]) -> 'Data':
+        return cls(
+            intensity=np.array([datum.intensity for datum in data]),
+            units=data[0].units,
+            clipped=np.array([datum.clipped for datum in data]) if isinstance(data[0].clipped, np.ndarray) else None,
+            meta=Meta(
+                capacity=data[0].meta.capacity,
+                exposure=data[0].meta.exposure,
+                started_at=data[0].meta.finished_at,
+                finished_at=data[-1].meta.finished_at,
+            ),
+        )
+
     def show(self) -> None:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 

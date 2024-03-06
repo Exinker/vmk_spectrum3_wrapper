@@ -1,5 +1,4 @@
 import time
-from collections.abc import Sequence
 
 import numpy as np
 
@@ -7,7 +6,7 @@ from vmk_spectrum3_wrapper.data import Datum, Meta
 from vmk_spectrum3_wrapper.device import ADC_RESOLUTION
 from vmk_spectrum3_wrapper.handler import BufferHandler, PipeHandler
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
-from vmk_spectrum3_wrapper.typing import Array, MilliSecond
+from vmk_spectrum3_wrapper.typing import Array
 from vmk_spectrum3_wrapper.units import Units
 
 

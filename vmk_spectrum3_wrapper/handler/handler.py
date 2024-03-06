@@ -1,4 +1,4 @@
-from vmk_spectrum3_wrapper.data import Datum, Meta
+from vmk_spectrum3_wrapper.data import Data, Datum, Meta
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
 from vmk_spectrum3_wrapper.units import Units, get_scale
 
@@ -37,3 +37,17 @@ class ScaleHandler(Handler):
                 finished_at=data.meta.finished_at,
             ),
         )
+
+
+class DarkCalibration(BaseHandler):
+
+    def __init__(self, dark: Data):
+        self._dark = dark
+
+    @property
+    def dark(self) -> Data:
+        return self._dark
+
+    # --------        private        --------
+    def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
+        return datum - self.dark
