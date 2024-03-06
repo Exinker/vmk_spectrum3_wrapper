@@ -7,67 +7,69 @@ import pyspectrum3 as ps3
 
 from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, ReadConfig, ReadMode
-from vmk_spectrum3_wrapper.device.exceptions import CreateDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, StatusTypeError, eprint
+from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, StatusDeviceError, eprint
+from vmk_spectrum3_wrapper.handler import PipeHandler
 from vmk_spectrum3_wrapper.storage import Storage
 from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond, Second
 
 
+def _create_device(config: DeviceConfig) -> 'Device':
+    """Create device by config and initialize."""
+    device = ps3.DeviceManager()
+
+    if isinstance(config, DeviceConfigAuto):
+        device.initialize(
+            ps3.AutoConfig().config(),
+        )
+        return device
+
+    raise ValueError(f'Device {type(config).__name__} is not supported yet!')
+
+
 class Device:
 
-    def __init__(self, storage: Storage | None = None, verbose: bool = False) -> None:
-
-        self.condition = threading.Condition(lock=None)
-        self.verbose = verbose
-
-        # device
-        self._device = None
-        self._storage = storage or Storage()
-        self._status = None
-
-        self._device_config = None
-        self._read_config = None
-
-    def create(self, config: DeviceConfig | None = None) -> 'Device':
-        """Create a device."""
-
-        def _create_device(config: DeviceConfig) -> 'Device':
-            """Create device by config and initialize."""
-            device = ps3.DeviceManager()
-
-            if isinstance(config, DeviceConfigAuto):
-                device.initialize(
-                    ps3.AutoConfig().config(),
-                )
-                return device
-
-            raise ValueError(f'Device {type(config).__name__} is not supported yet!')
+    def __init__(self, config: DeviceConfig | None = None, verbose: bool = False) -> None:
 
         # config
         self._device_config = config or DeviceConfigAuto()
+        self._read_config = None
 
         # device
         device = _create_device(self._device_config)
-
         device.set_frame_callback(self._on_frame)
         device.set_status_callback(self._on_status)
         device.set_error_callback(self._on_error)
 
         self._device = device
-
-        #
         self._status = None
         self._is_connected = False
-        self._read_config = None
 
-        return self
+        # storage
+        self._storage = None
 
+        #
+        self.condition = threading.Condition(lock=None)
+        self.verbose = verbose
+
+    @property
+    def device(self) -> 'Device':
+        return self._device
+
+    @property
+    def status(self) -> Mapping[IP, ps3.AssemblyStatus] | None:
+        return self._status
+
+    @property
+    def storage(self) -> Storage | None:
+        return self._storage
+
+    # --------        handlers        --------
     def connect(self) -> 'Device':
         """Connect to device."""
         message = 'Device is not ready to connect!'
 
         # pass checks
         try:
-            self._check_creation()
             self._check_connection(state=False)
 
         except DeviceError as error:
@@ -76,7 +78,7 @@ class Device:
 
         # connect
         try:
-            self._device.connect()
+            self.device.connect()
 
         except ps3.DriverException as error:
             eprint(message=message, error=error)
@@ -92,7 +94,6 @@ class Device:
 
         # pass checks
         try:
-            self._check_creation()
             self._check_connection(state=True)
 
         except DeviceError as error:
@@ -101,7 +102,7 @@ class Device:
 
         # disconnect
         try:
-            self._device.disconnect()
+            self.device.disconnect()
 
         except ps3.DriverException as error:
             eprint(message=message, error=error)
@@ -111,18 +112,23 @@ class Device:
 
         return self
 
-    def setup(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond]) -> 'Device':
+    def setup(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int] = 1, storage: Storage | None = None) -> 'Device':
         """Setup device to read."""
         message = 'Device is not ready to setup!'
-
         config = ReadConfig(
             exposure=exposure,
-            capacity=self.storage._capacity,
+            capacity=capacity,
+        )
+
+        # setup storage
+        self._storage = storage or Storage(handler=PipeHandler())
+        self._storage.setup(
+            exposure=exposure,
+            capacity=capacity,
         )
 
         # pass checks
         try:
-            self._check_creation()
             self._check_connection()
             self._check_status(ps3.AssemblyStatus.ALIVE)
 
@@ -136,10 +142,10 @@ class Device:
         # setup device
         try:
             if config.mode == ReadMode.standart:
-                self._device.set_exposure(*config)
+                self.device.set_exposure(*config)
 
             if config.mode == ReadMode.extended:
-                self._device.set_double_exposure(*config)
+                self.device.set_double_exposure(*config)
 
         except ps3.DriverException as error:
             eprint(message=message, error=error)
@@ -155,29 +161,40 @@ class Device:
                 message = f'Setup config: {self._read_config}'
                 print(message)
 
-        # setup storage
-        self.storage.clear()
-        self.storage._exposure = exposure  # FIXME: !
-
         return self
 
-    # --------        storage        --------
-    @property
-    def storage(self) -> Storage | None:
-        return self._storage
+    def read(self, n_iters: int, blocking: bool = True, timeout: Second = 1e-2) -> Data | None:
+        """Прочитать `n_iters` раз и вернуть данные (blocking), или прочитать `n_iters` раз в `storage` (non blocking)."""
 
-    def set_storage(self, storage: Storage) -> 'Device':
-        """"""
-        assert isinstance(storage, Storage)
+        # pass checks
+        try:
+            self._check_connection()
+            self._check_status(ps3.AssemblyStatus.ALIVE)
+            self._check_read_config()
 
-        self._storage = storage
+        except DeviceError as error:
+            eprint(
+                message='Device is not ready to read!',
+                error=error,
+            )
+            return self
 
-        return self
+        # read data
+        n_frames = n_iters * self.storage.capacity
+        if self.verbose:
+            print(f'n_frames: {n_frames}')
 
-    # --------        status        --------
-    @property
-    def status(self) -> Mapping[IP, ps3.AssemblyStatus] | None:
-        return self._status
+        self.device.read(n_frames)
+
+        # block
+        if blocking:
+            time.sleep(timeout)  # FIXME: нужна задержка, так как статуc не всегда успевает измениться
+
+            with self.condition:
+                while not self.is_status(ps3.AssemblyStatus.ALIVE):
+                    self.condition.wait(timeout)
+
+            return Data(self.storage.pull())
 
     def is_status(self, __status: ps3.AssemblyStatus | Sequence[ps3.AssemblyStatus]) -> bool:
 
@@ -196,42 +213,7 @@ class Device:
                 for ip, status in self.status.items()
             )
 
-        raise StatusTypeError(f'Status type {type(__status)} is not supported yet!')
-
-    # --------        read        --------
-    def read(self, n_iters: int, blocking: bool = True, timeout: Second = 1e-2) -> Data | None:
-        """Прочитать `n_iters` раз и вернуть данные (blocking), или прочитать `n_iters` раз в `storage` (non blocking)."""
-
-        # pass checks
-        try:
-            self._check_creation()
-            self._check_connection()
-            self._check_status(ps3.AssemblyStatus.ALIVE)
-            self._check_read_config()
-
-        except DeviceError as error:
-            eprint(
-                message='Device is not ready to read!',
-                error=error,
-            )
-            return self
-
-        # read data
-        n_frames = n_iters * self.storage.capacity
-        if self.verbose:
-            print(f'n_frames: {n_frames}')
-
-        self._device.read(n_frames)
-
-        # block
-        if blocking:
-            time.sleep(timeout)  # FIXME: нужна задержка, так как статуc не всегда успевает измениться
-
-            with self.condition:
-                while not self.is_status(ps3.AssemblyStatus.ALIVE):
-                    self.condition.wait(timeout)
-
-            return Data(self.storage.pull())
+        raise StatusDeviceError(f'Status type {type(__status)} is not supported yet!')
 
     # --------        callbacks        --------
     def _on_frame(self, frame: Array[int]) -> None:
@@ -259,13 +241,9 @@ class Device:
             print('on_error:', type(error), error, flush=True)
 
     # --------        checks        --------
-    def _check_creation(self) -> None:
-        if self._device is None:
-            raise CreateDeviceError('Create a device before!')
-
     def _check_connection(self, state: bool = True) -> None:
         if self._is_connected != state:
-            raise CreateDeviceError({
+            raise ConnectionDeviceError({
                 True: 'Device have to be connected before!',
                 False: 'Device is connected before!',
             }.get(state))
