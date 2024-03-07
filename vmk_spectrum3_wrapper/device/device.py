@@ -177,7 +177,7 @@ class Device:
                 message='Device is not ready to read!',
                 error=error,
             )
-            return self
+            return None
 
         # read data
         n_frames = n_iters * self.storage.capacity
