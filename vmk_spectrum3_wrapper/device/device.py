@@ -8,7 +8,6 @@ import pyspectrum3 as ps3
 from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, ReadConfig, ReadMode
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
-from vmk_spectrum3_wrapper.handler import PipeHandler
 from vmk_spectrum3_wrapper.storage import Storage
 from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond, Second
 
@@ -121,7 +120,7 @@ class Device:
         )
 
         # setup storage
-        self._storage = storage or Storage(handler=PipeHandler())
+        self._storage = storage or Storage()
         self._storage.setup(
             exposure=exposure,
             capacity=capacity,
