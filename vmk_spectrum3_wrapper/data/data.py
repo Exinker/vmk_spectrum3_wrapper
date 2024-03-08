@@ -204,6 +204,12 @@ class Data(BaseData):
             )
 
         #
-        plt.xlabel('Номер отсчета')
-        plt.ylabel('Интенсивность, отн. ед.')
+        plt.xlabel(r'Номер отсчета')
+        plt.ylabel(r'Интенсивность, {units}'.format(
+            units={
+                Units.digit: 'бит',
+                Units.electron: '$e^{-}$',
+                Units.percent: 'отн. ед.',
+            }[self.units],
+        ))
         plt.show()
