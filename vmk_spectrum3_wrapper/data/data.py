@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from vmk_spectrum3_wrapper.data.meta import Meta
-from vmk_spectrum3_wrapper.typing import Array, T
+from vmk_spectrum3_wrapper.typing import Array, U
 from vmk_spectrum3_wrapper.units import Units
 
 
 @overload
-def reshape(values: Array[T]) -> Array[T]: ...
+def reshape(values: Array[U]) -> Array[U]: ...
 @overload
 def reshape(values: None) -> None: ...
 def reshape(values):
@@ -26,7 +26,7 @@ def reshape(values):
 
 class BaseData(ABC):
 
-    def __init__(self, intensity: Array[T], units: Units, clipped: Array[bool] | None = None, meta: Meta | None = None):
+    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, meta: Meta | None = None):
         self.intensity = intensity
         self.units = units
         self.clipped = clipped
@@ -58,7 +58,7 @@ class BaseData(ABC):
         raise NotImplementedError
 
     # --------        private        --------
-    def __add__(self, other: T | Array[T] | 'BaseData') -> 'BaseData':
+    def __add__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
         cls = self.__class__
 
         print(cls.__name__, cls)
@@ -90,13 +90,13 @@ class BaseData(ABC):
             meta=self.meta,
         )
 
-    def __iadd__(self, other: T | Array[T] | 'BaseData') -> 'BaseData':
+    def __iadd__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
         return self + other
 
-    def __radd__(self, other: T | Array[T] | 'BaseData') -> 'BaseData':
+    def __radd__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
         return self + other
 
-    def __sub__(self, other: T | Array[T] | 'BaseData') -> 'BaseData':
+    def __sub__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
         cls = self.__class__
 
         #
@@ -126,16 +126,16 @@ class BaseData(ABC):
             meta=self.meta,
         )
 
-    def __isub__(self, other: T | Array[T] | 'BaseData') -> 'BaseData':
+    def __isub__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
         return self - other
 
-    def __rsub__(self, other: T | Array[T] | 'BaseData') -> 'BaseData':
+    def __rsub__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
         return self - other
 
 
 class Datum(BaseData):
 
-    def __init__(self, intensity: Array[T], units: Units, clipped: Array[bool] | None = None, meta: Meta | None = None):
+    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, meta: Meta | None = None):
         super().__init__(intensity=intensity, units=units, clipped=clipped, meta=meta)
 
     # --------        handlers        --------
@@ -166,7 +166,7 @@ class Datum(BaseData):
 
 class Data(BaseData):
 
-    def __init__(self, intensity: Array[T], units: Units, clipped: Array[bool] | None = None, meta: Meta | None = None):
+    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, meta: Meta | None = None):
         super().__init__(intensity=intensity, units=units, clipped=clipped, meta=meta)
 
     # --------        handlers        --------

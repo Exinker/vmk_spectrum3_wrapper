@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from vmk_spectrum3_wrapper.typing import Array, T
+from vmk_spectrum3_wrapper.typing import Array, U
 
 
 class BaseHandler(ABC):
@@ -10,5 +10,5 @@ class BaseHandler(ABC):
         return True
 
     @abstractmethod
-    def __call__(self, data: Array[T], *args, **kwargs) -> Array[T]:
+    def __call__(self, data: Array[U], *args, **kwargs) -> Array[U]:
         raise NotImplementedError

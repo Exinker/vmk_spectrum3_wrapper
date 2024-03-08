@@ -83,7 +83,7 @@ class ReadConfig:
         if self.mode == ReadMode.extended:
             return itertools.chain(*[
                 (to_microsecond(exposure), capacity)
-                for exposure, capacity in zip(self.exposure, self.capacity)
+                for exposure, capacity in zip(reversed(self.exposure), reversed(self.capacity))  # TODO: reverse items for compatibility with Atom
             ])
 
         raise TypeError()

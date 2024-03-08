@@ -34,11 +34,12 @@ Number = NewType('Number', float)
 
 # --------        value units        --------
 Absorbance = NewType('Absorbance', float)
+A: TypeAlias = Absorbance
+
 Digit = NewType('Digit', float)
 Electron = NewType('Electron', float)
 Percent = NewType('Percent', float)
-
-T = TypeVar('T', Electron, Percent)
+U = TypeVar('U', Digit, Electron, Percent)
 
 
 # --------        other units        --------

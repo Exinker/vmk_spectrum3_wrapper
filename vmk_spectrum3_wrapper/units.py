@@ -1,7 +1,7 @@
 from enum import Enum
 
 from vmk_spectrum3_wrapper.device import ADC_RESOLUTION
-from vmk_spectrum3_wrapper.typing import Electron, T
+from vmk_spectrum3_wrapper.typing import Electron, U
 
 
 class Units(Enum):
@@ -11,7 +11,7 @@ class Units(Enum):
     electron = 'electron'
 
 
-def get_clipping(units: Units) -> T:
+def get_clipping(units: Units) -> U:
     """Get unit's clipping value (max value)."""
 
     match units:
@@ -52,7 +52,7 @@ def get_label(units: Units, is_enclosed: bool = True) -> str:
 
 
 # --------        handlers        --------
-def to_electron(value: T, units: Units, capacity: Electron) -> Electron:
+def to_electron(value: U, units: Units, capacity: Electron) -> Electron:
     """Convert value to electron units."""
 
     match units:
