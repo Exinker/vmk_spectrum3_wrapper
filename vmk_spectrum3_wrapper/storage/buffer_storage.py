@@ -1,4 +1,5 @@
 import time
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -25,17 +26,12 @@ class BufferStorage(BaseStorage):
     def buffer(self) -> list[Array[int]]:
         return self._buffer
 
-    # @property
-    # def capacity(self) -> int | tuple[int, int]:
-    #     """"Required `n_frames` to iteration."""
-    #     return self._exposure
-
-    #     if isinstance(self._capacity, int):
-    #         return self._capacity
-    #     if isinstance(self._capacity, Sequence):
-    #         return sum(self._capacity)
-
-    #     raise TypeError(f'Capacity: {type(self._capacity)} is not supported yet!')
+    @property
+    def buffer_size(self) -> int:
+        if isinstance(self.capacity, int):
+            return self.capacity
+        if isinstance(self.capacity, Sequence):
+            return sum(self.capacity)
 
     # --------        handlers        --------
     def put(self, frame: Array[int]) -> None:
@@ -53,9 +49,7 @@ class BufferStorage(BaseStorage):
         self.buffer.append(frame)
 
         # data
-        if len(self.buffer) == self.capacity:  # если буфер заполнен, то ранные обрабатываются `handler`, передаются в `data` и буфер очищается
-
-            #
+        if len(self.buffer) == self.buffer_size:  # если буфер заполнен, то ранные обрабатываются `handler`, передаются в `data` и буфер очищается
             buffer = np.array(self.buffer)
 
             datum = Datum(
