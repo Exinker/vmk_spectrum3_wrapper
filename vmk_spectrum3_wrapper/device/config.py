@@ -72,6 +72,29 @@ class ReadConfig:
     def mode(self) -> ReadMode:
         return self._mode
 
+    @property
+    def duration(self) -> MilliSecond:
+
+        if self.mode == ReadMode.standart:
+            return self.exposure * self.capacity
+        if self.mode == ReadMode.extended:
+            return sum(
+                exposure*capacity
+                for exposure, capacity in zip(self.exposure, self.capacity)
+            )
+
+        raise ValueError(f'Mode {self.mode} is not supported yet!')
+
+    @property
+    def n_frames(self) -> int:
+
+        if self.mode == ReadMode.standart:
+            return self.capacity
+        if self.mode == ReadMode.extended:
+            return sum(self.capacity)
+
+        raise ValueError(f'Mode {self.mode} is not supported yet!')
+
     # --------        private        --------
     def __iter__(self) -> Iterator:
 

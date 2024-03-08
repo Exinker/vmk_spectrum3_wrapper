@@ -179,15 +179,13 @@ class Device:
             return None
 
         # read data
-        n_frames = n_iters * self.storage.capacity
-        if self.verbose:
-            print(f'n_frames: {n_frames}')
-
+        n_frames = n_iters * self._read_config.n_frames
+        print(n_frames)
         self.device.read(n_frames)
 
         # block
         if blocking:
-            time.sleep(timeout)  # FIXME: нужна задержка, так как статуc не всегда успевает измениться
+            time.sleep(timeout)  # FIXME: нужна задержка, так как статуc не всегда успевает обновиться
 
             with self.condition:
                 while not self.is_status(ps3.AssemblyStatus.ALIVE):
