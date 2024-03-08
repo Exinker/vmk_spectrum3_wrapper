@@ -1,10 +1,8 @@
 import time
 
-import numpy as np
-
 from vmk_spectrum3_wrapper.data import Datum, Meta
 from vmk_spectrum3_wrapper.device import ADC_RESOLUTION
-from vmk_spectrum3_wrapper.handler import PipeHandler
+from vmk_spectrum3_wrapper.handler import PipeHandler, ScaleHandler
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
 from vmk_spectrum3_wrapper.typing import Array, Digit
 from vmk_spectrum3_wrapper.units import Units
@@ -12,8 +10,8 @@ from vmk_spectrum3_wrapper.units import Units
 
 class Storage(BaseStorage):
 
-    def __init__(self, handler: PipeHandler) -> None:
-        super().__init__(handler=handler)
+    def __init__(self, handler: PipeHandler | None = None) -> None:
+        super().__init__(handler=handler or PipeHandler([ScaleHandler()]))
 
     # --------        handlers        --------
     def put(self, frame: Array[Digit]) -> None:
@@ -28,13 +26,10 @@ class Storage(BaseStorage):
         self._finished_at = time_at
 
         # data
-        intensity = np.array(frame)
-        clipped = intensity == (2**ADC_RESOLUTION - 1)
-
         datum = Datum(
-            intensity=intensity,
+            intensity=frame,
             units=Units.digit,
-            clipped=clipped,
+            clipped=frame == (2**ADC_RESOLUTION - 1),
             meta=Meta(
                 capacity=self._capacity,
                 exposure=self._exposure,
@@ -44,8 +39,8 @@ class Storage(BaseStorage):
         )
         datum = self.handler(datum)
 
-        self._data.append(datum)
+        self.data.append(datum)
 
     def clear(self) -> None:
         """Clear storage."""
-        self._data.clear()
+        self.data.clear()

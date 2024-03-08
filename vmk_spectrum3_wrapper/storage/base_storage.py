@@ -58,7 +58,7 @@ class BaseStorage(ABC):
         self._exposure = exposure
         self._capacity = capacity
 
-    def pull(self, clear: bool = True) -> Datum:
+    def pull(self, clear: bool = True) -> list[Datum]:
         """Pull data from storage."""
 
         try:
@@ -83,7 +83,7 @@ class BaseStorage(ABC):
         return True
 
     def __len__(self) -> int:
-        return len(self._data)
+        return len(self.data)
 
     def __repr__(self) -> str:
         cls = self.__class__

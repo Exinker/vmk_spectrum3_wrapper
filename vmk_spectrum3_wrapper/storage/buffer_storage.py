@@ -4,7 +4,7 @@ import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum, Meta
 from vmk_spectrum3_wrapper.device import ADC_RESOLUTION
-from vmk_spectrum3_wrapper.handler import BufferHandler, PipeHandler
+from vmk_spectrum3_wrapper.handler import AverageHandler, BufferHandler, PipeHandler, ScaleHandler
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
 from vmk_spectrum3_wrapper.typing import Array
 from vmk_spectrum3_wrapper.units import Units
@@ -17,7 +17,7 @@ class BufferStorage(BaseStorage):
             assert any(isinstance(h, BufferHandler) for h in handler), 'PipeHandler should contains one BufferHandler at least!'
 
         #
-        super().__init__(handler=handler)
+        super().__init__(handler=handler or PipeHandler([ScaleHandler(), AverageHandler()]))
 
         self._buffer = []
 
@@ -81,7 +81,3 @@ class BufferStorage(BaseStorage):
         """Clear buffer and data."""
         self.buffer.clear()
         self.data.clear()
-
-    # --------        private        --------
-    def __len__(self) -> int:
-        return len(self._data)
