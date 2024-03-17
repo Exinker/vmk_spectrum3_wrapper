@@ -75,8 +75,8 @@ class BaseData(ABC):
             clipped = np.full(False, other.shape)
 
         if isinstance(other, BaseData):
-            assert other.n_times == self.n_times
-            assert other.n_numbers == self.n_numbers
+            # assert other.n_times == self.n_times
+            assert other.n_numbers == self.n_numberss
             assert other.units == self.units
 
             intensity = other.intensity
