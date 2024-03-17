@@ -9,7 +9,7 @@ from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, ReadConfig, ReadMode
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
 from vmk_spectrum3_wrapper.storage import Storage
-from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond, Second
+from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond
 
 
 def _create_device(config: DeviceConfig) -> 'Device':
@@ -87,7 +87,7 @@ class Device:
 
         return self
 
-    def disconnect(self, timeout: Second = 5) -> 'Device':
+    def disconnect(self) -> 'Device':
         """Disconnect from device."""
         message = 'Device is not ready to disconnect!'
 
@@ -151,10 +151,8 @@ class Device:
             return self
 
         else:
+            self._wait_set_exposure(config.duration)
             self._read_config = config
-
-            duration = self._device_config.change_exposure_delay / 1000
-            time.sleep(duration)  # delay after exposure update
 
             if self.verbose:
                 message = f'Setup config: {self._read_config}'
@@ -162,7 +160,7 @@ class Device:
 
         return self
 
-    def read(self, n_iters: int, blocking: bool = True, timeout: Second = 1e-1) -> Data | None:
+    def read(self, n_iters: int, blocking: bool = True, timeout: MilliSecond = 10) -> Data | None:
         """Прочитать `n_iters` раз и вернуть данные (blocking), или прочитать `n_iters` раз в `storage` (non blocking)."""
 
         # pass checks
@@ -180,16 +178,13 @@ class Device:
 
         # read data
         n_frames = n_iters * self._read_config.n_frames
-        print(n_frames)
         self.device.read(n_frames)
+        self._wait_read()
 
         # block
         if blocking:
-            time.sleep(timeout)  # FIXME: нужна задержка, так как статуc не всегда успевает обновиться
-
-            with self.condition:
-                while not self.is_status(ps3.AssemblyStatus.ALIVE):
-                    self.condition.wait(timeout)
+            while len(self.storage) < n_iters:
+                time.sleep(1e-3*timeout)
 
             return Data.squeeze(self.storage.pull())
 
@@ -247,6 +242,9 @@ class Device:
 
     def _check_status(self, __status: ps3.AssemblyStatus | Sequence[ps3.AssemblyStatus]) -> None:
 
+        if self.status is None:
+            raise ConnectionDeviceError('Device is not found! Check the connection!')
+
         if not self.is_status(__status):
             message = 'Fix assembly before: {ip}!'.format(
                 ip=', '.join([
@@ -263,6 +261,15 @@ class Device:
             raise SetupDeviceError('Setup a device before!')
 
     # --------        private        --------
+    def _wait_set_exposure(self, duration: MilliSecond) -> None:
+        # FIXME: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
+        duration = self._device_config.change_exposure_delay
+
+        time.sleep(1e-3*duration)  # delay after exposure update
+
+    def _wait_read(self, duration: MilliSecond = 1000) -> None:
+        time.sleep(1e-3*duration)  # delay after read
+
     def __repr__(self) -> str:
         cls = self.__class__
 
