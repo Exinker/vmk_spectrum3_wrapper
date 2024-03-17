@@ -26,12 +26,11 @@ class PipeHandler(BaseHandler):
         return self.handlers[0].units
 
     # --------        private        --------
-    def __call__(self, data: Datum, *args, **kwargs) -> Datum:
-
+    def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         for handler in self.handlers:
-            data = handler(data, *args, **kwargs)
+            datum = handler(datum, *args, **kwargs)
 
-        return data
+        return datum
 
     def __getitem__(self, index: int) -> Handler:
         return self._handlers[index]

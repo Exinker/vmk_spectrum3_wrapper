@@ -64,7 +64,6 @@ class BufferStorage(BaseStorage):
                 ),
             )
             datum = self.handler(datum)
-
             self.data.append(datum)
 
             #
