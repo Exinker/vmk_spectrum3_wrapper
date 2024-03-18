@@ -1,6 +1,8 @@
 from typing import Callable
 
+from vmk_spectrum3_wrapper.adc import ADC
 from vmk_spectrum3_wrapper.data import Data, Datum, Meta
+from vmk_spectrum3_wrapper.device import _ADC
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
 from vmk_spectrum3_wrapper.typing import Array, Digit
 from vmk_spectrum3_wrapper.units import Units
@@ -46,8 +48,9 @@ class SwapHandler(FrameHandler):
 class ClipHandler(FrameHandler):
     """Handler to clip a datum."""
 
-    def __init__(self):
-        self.value_max = Units.digit.value_max
+    def __init__(self, adc: ADC | None = None):
+        self.adc = adc or _ADC  # TODO:
+        self.value_max = self.adc.value_max
 
     def handle(self, value: Array[Digit]) -> Array[bool]:
         return value >= self.value_max

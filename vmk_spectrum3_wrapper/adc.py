@@ -8,6 +8,8 @@ Author: Vaschenko Pavel
 from dataclasses import dataclass
 from enum import Enum
 
+from vmk_spectrum3_wrapper.typing import Digit
+
 
 @dataclass(frozen=True)
 class ADCConfig:
@@ -26,11 +28,20 @@ class ADCConfig:
 class ADC(Enum):
     """Enums with detectors."""
 
-    _16BIT = ADCConfig(
+    _16bit = ADCConfig(
         resolution=16,
         log=False,
     )
-    _18BIT = ADCConfig(
+    _18bit = ADCConfig(
         resolution=18,
         log=False,
     )
+
+    @property
+    def config(self) -> ADCConfig:
+        """Config of the ADC."""
+        return self.value
+
+    @property
+    def value_max(self) -> Digit:
+        return 2**self.config.resolution - 1

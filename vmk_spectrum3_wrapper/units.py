@@ -1,6 +1,6 @@
 from enum import Enum
 
-from vmk_spectrum3_wrapper.device.config import ADC_RESOLUTION
+from vmk_spectrum3_wrapper.device.config import _ADC
 from vmk_spectrum3_wrapper.typing import Electron, U
 
 
@@ -16,7 +16,7 @@ class Units(Enum):
 
         match self:
             case Units.digit:
-                return 2**ADC_RESOLUTION - 1
+                return _ADC.value_max
             case Units.percent:
                 return 100
             case Units.electron:
