@@ -28,7 +28,7 @@ class Units(Enum):
     def scale(self) -> float:
         """Unit's scale to coefficient."""
 
-        return self.clipping / Units.digit.clipping
+        return self.value_max / Units.digit.value_max
 
     @property
     def label(self, is_enclosed: bool = True) -> str:

@@ -1,17 +1,24 @@
+from typing import Callable
+
 from vmk_spectrum3_wrapper.data import Data, Datum, Meta
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
-from vmk_spectrum3_wrapper.units import Units, get_scale
+from vmk_spectrum3_wrapper.typing import Array, Digit
+from vmk_spectrum3_wrapper.units import Units
 
 
-class Handler(BaseHandler):
-    """Not reduce dimension handlers."""
+class FrameHandler(BaseHandler):
+    """One frame or not reduce dimension handlers."""
 
 
-class SwapHandler(Handler):
+# --------        raw signal handlers        --------
+class SwapHandler(FrameHandler):
     """Handler to swap a datum if needed."""
 
     def __init__(self, flag: bool = False):
         self._flag = flag
+
+        if self._flag:
+            raise NotImplementedError
 
     @property
     def flag(self) -> bool:
@@ -19,6 +26,7 @@ class SwapHandler(Handler):
 
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
+        assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
 
         if not self.flag:
             return datum
@@ -26,7 +34,6 @@ class SwapHandler(Handler):
         return Datum(
             intensity=datum.intensity.flip(),
             units=datum.units,
-            clipped=datum.clipped.flip(),
             meta=Meta(
                 capacity=datum.meta.capacity,
                 exposure=datum.meta.exposure,
@@ -36,12 +43,38 @@ class SwapHandler(Handler):
         )
 
 
-class ScaleHandler(Handler):
-    """Handler to scale a datum from `Units.digit` to `units`"""
+class ClipHandler(FrameHandler):
+    """Handler to clip a datum."""
+
+    def __init__(self):
+        self.value_max = Units.digit.value_max
+
+    def handle(self, value: Array[Digit]) -> Array[bool]:
+        return value >= self.value_max
+
+    # --------        private        --------
+    def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
+        assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
+
+        return Datum(
+            intensity=datum.intensity,
+            units=datum.units,
+            clipped=self.handle(datum.intensity),
+            meta=Meta(
+                capacity=datum.meta.capacity,
+                exposure=datum.meta.exposure,
+                started_at=datum.meta.started_at,
+                finished_at=datum.meta.finished_at,
+            ),
+        )
+
+
+class ScaleHandler(FrameHandler):
+    """Handler to scale a datum from `Units.digit` to `units`."""
 
     def __init__(self, units: Units | None = None):
         self._units = units or Units.percent
-        self._scale = get_scale(self.units)
+        self._scale = self.units.scale
 
     @property
     def units(self) -> Units:
@@ -53,7 +86,7 @@ class ScaleHandler(Handler):
 
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
-        assert datum.units == Units.digit, 'ScaleHandler: {datum.units} is not valid! Only `digit` is supported!'
+        assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
 
         return Datum(
             intensity=self.scale*datum.intensity,
@@ -68,7 +101,9 @@ class ScaleHandler(Handler):
         )
 
 
-class OffsetHandler(BaseHandler):
+# --------        calibrations        --------
+class OffsetHandler(FrameHandler):
+    """Calibrate `data` by offset intensity."""
 
     def __init__(self, offset: Data):
         self._offset = offset

@@ -11,7 +11,7 @@ from vmk_spectrum3_wrapper.typing import IP, MicroSecond, MilliSecond
 
 
 CHANGE_EXPOSURE_DELAY = 1000
-ADC_RESOLUTION = ADC._16BIT.config.resolution
+ADC_RESOLUTION = ADC._16BIT.value.resolution
 
 
 # --------        device config        --------
