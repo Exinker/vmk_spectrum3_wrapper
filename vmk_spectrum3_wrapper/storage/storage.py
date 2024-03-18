@@ -25,12 +25,9 @@ class Storage(BaseStorage):
         self._finished_at = time_at
 
         # data
-        units = Units.digit
-
         datum = Datum(
             intensity=frame,
-            units=units,
-            clipped=frame == units.value_max,  # TODO: remove to specific handler
+            units=Units.digit,
             meta=Meta(
                 capacity=self._capacity,
                 exposure=self._exposure,

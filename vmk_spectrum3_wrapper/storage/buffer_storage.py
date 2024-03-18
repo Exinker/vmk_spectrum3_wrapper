@@ -50,12 +50,10 @@ class BufferStorage(BaseStorage):
         # data
         if len(self.buffer) == self.buffer_size:  # если буфер заполнен, то ранные обрабатываются `handler`, передаются в `data` и буфер очищается
             buffer = np.array(self.buffer)
-            units = Units.digit
 
             datum = Datum(
                 intensity=buffer,
-                units=units,
-                clipped=buffer == units.value_max,  # TODO: remove to specific handler!
+                units=Units.digit,
                 meta=Meta(
                     capacity=self._capacity,
                     exposure=self._exposure,
