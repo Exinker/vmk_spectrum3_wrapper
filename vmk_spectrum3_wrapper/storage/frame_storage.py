@@ -7,7 +7,7 @@ from vmk_spectrum3_wrapper.typing import Array, Digit
 from vmk_spectrum3_wrapper.units import Units
 
 
-class Storage(BaseStorage):
+class FrameStorage(BaseStorage):
 
     def __init__(self, handler: PipeHandler | None = None) -> None:
         super().__init__(handler=handler or PipeHandler([SwapHandler(), ClipHandler(), ScaleHandler()]))
