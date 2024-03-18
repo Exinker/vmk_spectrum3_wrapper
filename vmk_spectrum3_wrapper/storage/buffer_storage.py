@@ -4,7 +4,6 @@ from collections.abc import Sequence
 import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum, Meta
-from vmk_spectrum3_wrapper.device import ADC_RESOLUTION
 from vmk_spectrum3_wrapper.handler import AverageHandler, BufferHandler, PipeHandler, ScaleHandler
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
 from vmk_spectrum3_wrapper.typing import Array
@@ -51,11 +50,12 @@ class BufferStorage(BaseStorage):
         # data
         if len(self.buffer) == self.buffer_size:  # если буфер заполнен, то ранные обрабатываются `handler`, передаются в `data` и буфер очищается
             buffer = np.array(self.buffer)
+            units = Units.digit
 
             datum = Datum(
                 intensity=buffer,
-                units=Units.digit,
-                clipped=buffer == (2**ADC_RESOLUTION - 1),
+                units=units,
+                clipped=buffer == units.value_max,  # TODO: remove to specific handler!
                 meta=Meta(
                     capacity=self._capacity,
                     exposure=self._exposure,

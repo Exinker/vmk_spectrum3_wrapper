@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 
 from vmk_spectrum3_wrapper.device import Device
-from vmk_spectrum3_wrapper.units import get_label
 
 
 if __name__ == '__main__':
@@ -22,7 +21,7 @@ if __name__ == '__main__':
         )
     plt.xlabel('number')
     plt.ylabel('I, {units}'.format(
-        units=get_label(device.storage.units),
+        units=device.storage.units.label,
     ))
     plt.legend(loc='upper right')
 

@@ -6,11 +6,12 @@ from typing import Iterator, TypeAlias
 
 import numpy as np
 
+from vmk_spectrum3_wrapper.adc import ADC
 from vmk_spectrum3_wrapper.typing import IP, MicroSecond, MilliSecond
 
 
 CHANGE_EXPOSURE_DELAY = 1000
-ADC_RESOLUTION = 16
+ADC_RESOLUTION = ADC._16BIT.config.resolution
 
 
 # --------        device config        --------

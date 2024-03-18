@@ -1,7 +1,6 @@
 import time
 
 from vmk_spectrum3_wrapper.data import Datum, Meta
-from vmk_spectrum3_wrapper.device import ADC_RESOLUTION
 from vmk_spectrum3_wrapper.handler import PipeHandler, ScaleHandler
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
 from vmk_spectrum3_wrapper.typing import Array, Digit
@@ -26,10 +25,12 @@ class Storage(BaseStorage):
         self._finished_at = time_at
 
         # data
+        units = Units.digit
+
         datum = Datum(
             intensity=frame,
-            units=Units.digit,
-            clipped=frame == (2**ADC_RESOLUTION - 1),
+            units=units,
+            clipped=frame == units.value_max,  # TODO: remove to specific handler
             meta=Meta(
                 capacity=self._capacity,
                 exposure=self._exposure,

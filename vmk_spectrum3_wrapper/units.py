@@ -1,6 +1,6 @@
 from enum import Enum
 
-from vmk_spectrum3_wrapper.device import ADC_RESOLUTION
+from vmk_spectrum3_wrapper.device.config import ADC_RESOLUTION
 from vmk_spectrum3_wrapper.typing import Electron, U
 
 
@@ -10,45 +10,39 @@ class Units(Enum):
     percent = 'percent'
     electron = 'electron'
 
+    @property
+    def value_max(self) -> U:
+        """Get unit's max value (clipped value)."""
 
-def get_clipping(units: Units) -> U:
-    """Get unit's clipping value (max value)."""
+        match self:
+            case Units.digit:
+                return 2**ADC_RESOLUTION - 1
+            case Units.percent:
+                return 100
+            case Units.electron:
+                raise TypeError(f'Units {self} is not supported yet!')
+            case _:
+                raise TypeError(f'Units {self} is not supported yet!')
 
-    match units:
-        case Units.digit:
-            return 2**ADC_RESOLUTION - 1
-        case Units.percent:
-            return 100
-        case Units.electron:
-            raise NotImplementedError
+    @property
+    def scale(self) -> float:
+        """Unit's scale to coefficient."""
 
-    raise TypeError(f'Units {units} is not supported yet!')
+        return self.clipping / Units.digit.clipping
 
+    @property
+    def label(self, is_enclosed: bool = True) -> str:
+        """Units's label."""
 
-def get_scale(units: Units) -> float:
-    """Get unit's scale coefficient."""
-
-    return get_clipping(units) / get_clipping(Units.digit)
-
-
-def get_label(units: Units, is_enclosed: bool = True) -> str:
-    """Get units's label."""
-
-    match units:
-        case Units.digit:
-            label = r''
-        case Units.percent:
-            label = r'%'
-        case Units.electron:
-            label = r'$e^{-}$'
-        case _:
-            raise TypeError(f'Units {units} is not supported yet!')
-
-    #
-    if is_enclosed:
-        return f'[{label}]'
-
-    return label
+        match self:
+            case Units.digit:
+                return r''
+            case Units.percent:
+                return r'%'
+            case Units.electron:
+                return r'$e^{-}$'
+            case _:
+                raise TypeError(f'Units {self} is not supported yet!')
 
 
 # --------        handlers        --------
@@ -57,9 +51,9 @@ def to_electron(value: U, units: Units, capacity: Electron) -> Electron:
 
     match units:
         case Units.digit:
-            return capacity * (value/(2**ADC_RESOLUTION - 1))
+            return capacity * (value/units.value_max)
         case Units.percent:
-            return capacity * (value/100)
+            return capacity * (value/units.value_max)
         case Units.electron:
             return value
 
