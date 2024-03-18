@@ -8,8 +8,8 @@ from vmk_spectrum3_wrapper.typing import Array, Electron, Percent, U
 
 
 @dataclass(frozen=True)
-class EmittedSpectrumNoise():
-    """Detector's noise dependence for any emitted spectra."""
+class Noise():
+    """Detector's noise dependence."""
     detector: Detector
     n_frames: int
     units: U = field(default=Percent)
