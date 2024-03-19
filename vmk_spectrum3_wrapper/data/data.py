@@ -24,6 +24,19 @@ def reshape(values):
     return values
 
 
+@overload
+def crop(values: Array[U]) -> Array[U]: ...
+@overload
+def crop(values: Array[bool]) -> Array[bool]: ...
+@overload
+def crop(values: None) -> None: ...
+def crop(value, index):
+    if value is None:
+        return None
+
+    return value[index, :]
+
+
 class BaseData(ABC):
 
     def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: Meta | None = None):
@@ -59,6 +72,18 @@ class BaseData(ABC):
         raise NotImplementedError
 
     # --------        private        --------
+    def __getitem__(self, index: int | slice) -> 'BaseData':
+        assert self.n_times > 1, 'Only 2d data is supported!'
+
+        cls = self.__class__
+        return cls(
+            intensity=crop(self.intensity, index),
+            units=self.units,
+            clipped=crop(self.clipped, index),
+            deviation=crop(self.deviation, index),
+            meta=self.meta,
+        )
+
     # def __add__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
     #     cls = self.__class__
 
