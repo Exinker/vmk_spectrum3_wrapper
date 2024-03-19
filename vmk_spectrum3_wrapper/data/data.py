@@ -26,10 +26,11 @@ def reshape(values):
 
 class BaseData(ABC):
 
-    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, meta: Meta | None = None):
+    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: Meta | None = None):
         self.intensity = intensity
         self.units = units
         self.clipped = clipped
+        self.deviation = deviation
         self.meta = meta
 
     @property
@@ -58,85 +59,85 @@ class BaseData(ABC):
         raise NotImplementedError
 
     # --------        private        --------
-    def __add__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
-        cls = self.__class__
+    # def __add__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
+    #     cls = self.__class__
 
-        print(cls.__name__, cls)
+    #     print(cls.__name__, cls)
 
-        #
-        if isinstance(other, float):
-            intensity = np.full(other, (self.n_times, self.n_number))
-            clipped = np.full(False, (self.n_times, self.n_number))
+    #     #
+    #     if isinstance(other, float):
+    #         intensity = np.full(other, (self.n_times, self.n_number))
+    #         clipped = np.full(False, (self.n_times, self.n_number))
 
-        if isinstance(other, np.ndarray):
-            assert self.n_numbers == len(other)
+    #     if isinstance(other, np.ndarray):
+    #         assert self.n_numbers == len(other)
 
-            intensity = other
-            clipped = np.full(False, other.shape)
+    #         intensity = other
+    #         clipped = np.full(False, other.shape)
 
-        if isinstance(other, BaseData):
-            # assert other.n_times == self.n_times
-            assert other.n_numbers == self.n_numberss
-            assert other.units == self.units
+    #     if isinstance(other, BaseData):
+    #         # assert other.n_times == self.n_times
+    #         assert other.n_numbers == self.n_numberss
+    #         assert other.units == self.units
 
-            intensity = other.intensity
-            clipped = other.clipped
+    #         intensity = other.intensity
+    #         clipped = other.clipped
 
-        #
-        return cls(
-            intensity=self.intensity + intensity,
-            units=self.units,
-            clipped=self.clipped & clipped,
-            meta=self.meta,
-        )
+    #     #
+    #     return cls(
+    #         intensity=self.intensity + intensity,
+    #         units=self.units,
+    #         clipped=self.clipped & clipped,
+    #         meta=self.meta,
+    #     )
 
-    def __iadd__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
-        return self + other
+    # def __iadd__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
+    #     return self + other
 
-    def __radd__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
-        return self + other
+    # def __radd__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
+    #     return self + other
 
-    def __sub__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
-        cls = self.__class__
+    # def __sub__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
+    #     cls = self.__class__
 
-        #
-        if isinstance(other, float):
-            intensity = np.full(other, (self.n_times, self.n_number))
-            clipped = np.full(False, (self.n_times, self.n_number))
+    #     #
+    #     if isinstance(other, float):
+    #         intensity = np.full(other, (self.n_times, self.n_number))
+    #         clipped = np.full(False, (self.n_times, self.n_number))
 
-        if isinstance(other, np.ndarray):
-            assert self.n_numbers == len(other)
+    #     if isinstance(other, np.ndarray):
+    #         assert self.n_numbers == len(other)
 
-            intensity = other
-            clipped = np.full(False, other.shape)
+    #         intensity = other
+    #         clipped = np.full(False, other.shape)
 
-        if isinstance(other, BaseData):
-            assert other.n_times == self.n_times
-            assert other.n_numbers == self.n_numbers
-            assert other.units == self.units
+    #     if isinstance(other, BaseData):
+    #         assert other.n_times == self.n_times
+    #         assert other.n_numbers == self.n_numbers
+    #         assert other.units == self.units
 
-            intensity = reshape(other.intensity)
-            clipped = reshape(other.clipped)
+    #         intensity = reshape(other.intensity)
+    #         clipped = reshape(other.clipped)
 
-        #
-        return cls(
-            intensity=self.intensity - intensity,
-            units=self.units,
-            clipped=self.clipped & clipped,
-            meta=self.meta,
-        )
+    #     #
+    #     return cls(
+    #         intensity=self.intensity - intensity,
+    #         units=self.units,
+    #         clipped=self.clipped & clipped,
+    #         meta=self.meta,
+    #     )
 
-    def __isub__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
-        return self - other
+    # def __isub__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
+    #     return self - other
 
-    def __rsub__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
-        return self - other
+    # def __rsub__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
+    #     return self - other
 
 
 class Datum(BaseData):
 
-    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, meta: Meta | None = None):
-        super().__init__(intensity=intensity, units=units, clipped=clipped, meta=meta)
+    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: Meta | None = None):
+        super().__init__(intensity=intensity, units=units, clipped=clipped, deviation=deviation, meta=meta)
 
     # --------        handlers        --------
     def show(self) -> None:
@@ -166,16 +167,25 @@ class Datum(BaseData):
 
 class Data(BaseData):
 
-    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, meta: Meta | None = None):
-        super().__init__(intensity=intensity, units=units, clipped=clipped, meta=meta)
+    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: Meta | None = None):
+        super().__init__(intensity=intensity, units=units, clipped=clipped, deviation=deviation, meta=meta)
 
     # --------        handlers        --------
     @classmethod
     def squeeze(cls, data: Sequence[Datum]) -> 'Data':
+
+        def collapse(data: Sequence[Datum], name: str) -> Array | None:
+            try:
+                return np.array([getattr(datum, name) for datum in data])
+
+            except AttributeError:
+                return None
+
         return cls(
             intensity=np.array([datum.intensity for datum in data]),
             units=data[0].units,
-            clipped=np.array([datum.clipped for datum in data]) if isinstance(data[0].clipped, np.ndarray) else None,
+            clipped=collapse(data, name='clipped'),
+            deviation=collapse(data, name='deviation'),
             meta=Meta(
                 capacity=data[0].meta.capacity,
                 exposure=data[0].meta.exposure,
