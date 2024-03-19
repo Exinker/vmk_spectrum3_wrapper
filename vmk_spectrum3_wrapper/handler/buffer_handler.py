@@ -19,11 +19,13 @@ class IntegralHandler(BufferHandler):
 
         intensity = np.sum(datum.intensity, axis=0)
         clipped = np.max(datum.clipped, axis=0) if isinstance(datum.clipped, np.ndarray) else None
+        deviation = np.sqrt(np.sum(datum.deviation**2, axis=0)) if isinstance(datum.deviation, np.ndarray) else None
 
         return Datum(
             intensity=intensity,
             units=datum.units,
             clipped=clipped,
+            deviation=deviation,
             meta=Meta(
                 capacity=datum.n_times,
                 exposure=datum.meta.exposure,
@@ -41,11 +43,13 @@ class AverageHandler(BufferHandler):
 
         intensity = np.mean(datum.intensity, axis=0)
         clipped = np.max(datum.clipped, axis=0) if isinstance(datum.clipped, np.ndarray) else None
+        deviation = np.sqrt(np.sum(datum.deviation**2, axis=0)) / datum.n_times if isinstance(datum.deviation, np.ndarray) else None
 
         return Datum(
             intensity=intensity,
             units=datum.units,
             clipped=clipped,
+            deviation=deviation,
             meta=Meta(
                 capacity=datum.n_times,
                 exposure=datum.meta.exposure,
@@ -70,23 +74,25 @@ class HighDynamicRangeHandler(BufferHandler):
         with open('datum.pkl', 'wb') as file:
             pickle.dump(datum, file)
 
-        intensity = datum.intensity.copy()
-        intensity[datum.clipped] = np.nan
+        return datum
 
-        t1, t2 = datum.meta.exposure
-        n1, n2 = datum.meta.capacity
+        # intensity = datum.intensity.copy()
+        # intensity[datum.clipped] = np.nan
 
-        lelic = np.mean(intensity[:n1, :], axis=0) * (max(t1, t2)/t1)
-        bolic = np.mean(intensity[-n2:, :], axis=0) * (max(t1, t2)/t2)
+        # t1, t2 = datum.meta.exposure
+        # n1, n2 = datum.meta.capacity
 
-        return Datum(
-            intensity=np.nanmean([lelic, bolic], axis=0),
-            units=datum.units,
-            clipped=np.max(datum.clipped, axis=0),  # FIXME: calculate clipped!
-            meta=Meta(
-                capacity=datum.n_times,
-                exposure=datum.meta.exposure,
-                started_at=datum.meta.started_at,
-                finished_at=datum.meta.finished_at,
-            ),
-        )
+        # lelic = np.mean(intensity[:n1, :], axis=0) * (max(t1, t2)/t1)
+        # bolic = np.mean(intensity[-n2:, :], axis=0) * (max(t1, t2)/t2)
+
+        # return Datum(
+        #     intensity=np.nanmean([lelic, bolic], axis=0),
+        #     units=datum.units,
+        #     clipped=np.max(datum.clipped, axis=0),  # FIXME: calculate clipped!
+        #     meta=Meta(
+        #         capacity=datum.n_times,
+        #         exposure=datum.meta.exposure,
+        #         started_at=datum.meta.started_at,
+        #         finished_at=datum.meta.finished_at,
+        #     ),
+        # )
