@@ -1,3 +1,5 @@
+import numpy as np
+
 from vmk_spectrum3_wrapper.adc import ADC
 from vmk_spectrum3_wrapper.data import Data, Datum, Meta
 from vmk_spectrum3_wrapper.detector import Detector
@@ -26,26 +28,27 @@ class SwapHandler(FrameHandler):
     def __init__(self, skip: bool = False):
         super().__init__(skip=skip)
 
-        if not self.skip:
-            raise NotImplementedError
+    def kernel(self, value: Array[Digit] | None) -> Array[Digit] | None:
+        if value is None:
+            return None
+
+        return value[::-1]
 
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
+        assert datum.n_times == 1, 'Only 1d `datum` are supported!'
 
         #
         if self.skip:
             return datum
 
         return Datum(
-            intensity=datum.intensity.flip(),
+            intensity=self.kernel(datum.intensity),
             units=datum.units,
-            meta=Meta(
-                capacity=datum.meta.capacity,
-                exposure=datum.meta.exposure,
-                started_at=datum.meta.started_at,
-                finished_at=datum.meta.finished_at,
-            ),
+            clipped=self.kernel(datum.clipped),
+            deviation=self.kernel(datum.deviation),
+            meta=datum.meta,
         )
 
 
