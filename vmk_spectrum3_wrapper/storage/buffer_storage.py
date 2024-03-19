@@ -4,7 +4,6 @@ from collections.abc import Sequence
 import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum, Meta
-from vmk_spectrum3_wrapper.device import ADC_RESOLUTION
 from vmk_spectrum3_wrapper.handler import AverageHandler, BufferHandler, PipeHandler, ScaleHandler
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
 from vmk_spectrum3_wrapper.typing import Array
@@ -55,7 +54,6 @@ class BufferStorage(BaseStorage):
             datum = Datum(
                 intensity=buffer,
                 units=Units.digit,
-                clipped=buffer == (2**ADC_RESOLUTION - 1),
                 meta=Meta(
                     capacity=self._capacity,
                     exposure=self._exposure,

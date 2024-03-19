@@ -1,17 +1,16 @@
 import time
 
 from vmk_spectrum3_wrapper.data import Datum, Meta
-from vmk_spectrum3_wrapper.device import ADC_RESOLUTION
-from vmk_spectrum3_wrapper.handler import PipeHandler, ScaleHandler
+from vmk_spectrum3_wrapper.handler import ClipHandler, PipeHandler, ScaleHandler, SwapHandler
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
 from vmk_spectrum3_wrapper.typing import Array, Digit
 from vmk_spectrum3_wrapper.units import Units
 
 
-class Storage(BaseStorage):
+class FrameStorage(BaseStorage):
 
     def __init__(self, handler: PipeHandler | None = None) -> None:
-        super().__init__(handler=handler or PipeHandler([ScaleHandler()]))
+        super().__init__(handler=handler or PipeHandler([SwapHandler(), ClipHandler(), ScaleHandler()]))
 
     # --------        handlers        --------
     def put(self, frame: Array[Digit]) -> None:
@@ -29,7 +28,6 @@ class Storage(BaseStorage):
         datum = Datum(
             intensity=frame,
             units=Units.digit,
-            clipped=frame == (2**ADC_RESOLUTION - 1),
             meta=Meta(
                 capacity=self._capacity,
                 exposure=self._exposure,

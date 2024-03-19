@@ -8,7 +8,7 @@ import pyspectrum3 as ps3
 from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, ReadConfig, ReadMode
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
-from vmk_spectrum3_wrapper.storage import Storage
+from vmk_spectrum3_wrapper.storage import FrameStorage
 from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond
 
 
@@ -59,7 +59,7 @@ class Device:
         return self._status
 
     @property
-    def storage(self) -> Storage | None:
+    def storage(self) -> FrameStorage | None:
         return self._storage
 
     # --------        handlers        --------
@@ -111,7 +111,7 @@ class Device:
 
         return self
 
-    def setup(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int] = 1, storage: Storage | None = None) -> 'Device':
+    def setup(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int] = 1, storage: FrameStorage | None = None) -> 'Device':
         """Setup device to read."""
         message = 'Device is not ready to setup!'
         config = ReadConfig(
@@ -120,7 +120,7 @@ class Device:
         )
 
         # setup storage
-        self._storage = storage or Storage()
+        self._storage = storage or FrameStorage()
         self._storage.setup(
             exposure=exposure,
             capacity=capacity,
