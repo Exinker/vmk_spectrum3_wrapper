@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
 from vmk_spectrum3_wrapper.handler.buffer_handler import BufferHandler
-from vmk_spectrum3_wrapper.handler.frame_handler import ClipHandler, FrameHandler, ScaleHandler, SwapHandler
+from vmk_spectrum3_wrapper.handler.frame_handler import ClipHandler, DeviationHandler, FrameHandler, ScaleHandler, SwapHandler
 from vmk_spectrum3_wrapper.units import Units
 
 
@@ -16,9 +16,10 @@ class PipeHandler(BaseHandler):
             assert isinstance(__handlers[2], ScaleHandler), '`ScaleHandler` have to be the third in a sequence!'
 
         self._handlers = __handlers or [
-            SwapHandler(),
+            SwapHandler(skip=True),
             ClipHandler(),
             ScaleHandler(),
+            DeviationHandler(),
         ]
 
     @property
