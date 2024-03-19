@@ -1,7 +1,7 @@
 import time
 
 from vmk_spectrum3_wrapper.data import Datum, Meta
-from vmk_spectrum3_wrapper.handler import ClipHandler, PipeHandler, ScaleHandler, SwapHandler
+from vmk_spectrum3_wrapper.handler import ClipHandler, DeviationHandler, PipeHandler, ScaleHandler, SwapHandler
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
 from vmk_spectrum3_wrapper.typing import Array, Digit
 from vmk_spectrum3_wrapper.units import Units
@@ -10,7 +10,7 @@ from vmk_spectrum3_wrapper.units import Units
 class FrameStorage(BaseStorage):
 
     def __init__(self, handler: PipeHandler | None = None) -> None:
-        super().__init__(handler=handler or PipeHandler([SwapHandler(), ClipHandler(), ScaleHandler()]))
+        super().__init__(handler=handler or PipeHandler([SwapHandler(skip=True), ClipHandler(), ScaleHandler(), DeviationHandler()]))
 
     # --------        handlers        --------
     def put(self, frame: Array[Digit]) -> None:
