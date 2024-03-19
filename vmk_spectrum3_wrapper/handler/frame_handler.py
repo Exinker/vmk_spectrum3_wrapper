@@ -1,9 +1,9 @@
-from typing import Callable
-
 from vmk_spectrum3_wrapper.adc import ADC
 from vmk_spectrum3_wrapper.data import Data, Datum, Meta
-from vmk_spectrum3_wrapper.device import _ADC
+from vmk_spectrum3_wrapper.detector import Detector
+from vmk_spectrum3_wrapper.device.config import _ADC, _DETECTOR
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
+from vmk_spectrum3_wrapper.noise import Noise
 from vmk_spectrum3_wrapper.typing import Array, Digit
 from vmk_spectrum3_wrapper.units import Units
 
@@ -127,6 +127,43 @@ class OffsetHandler(FrameHandler):
             intensity=datum.intensity - self.offset.intensity,
             units=datum.units,
             clipped=datum.clipped | self.offset.clipped,
+            meta=Meta(
+                capacity=datum.meta.capacity,
+                exposure=datum.meta.exposure,
+                started_at=datum.meta.started_at,
+                finished_at=datum.meta.finished_at,
+            ),
+        )
+
+
+# --------        others        --------
+class DeviationHandler(FrameHandler):
+    """Calculate a deviation of the `data`."""
+
+    def __init__(self, units: Units, adc: ADC | None = None, detector: Detector | None = None):
+        self.units = units
+        self.adc = adc or _ADC  # FIXME: remove it!
+        self.detector = detector or _DETECTOR  # FIXME: remove it!
+
+        self.noise = Noise(
+            adc=self.adc,
+            detector=self.detector,
+            units=self.units,
+            n_frames=1,
+        )
+
+    def handle(self, value: Array[Digit]) -> Array[Digit]:
+        return self.noise(value)
+
+    # --------        private        --------
+    def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
+        assert datum.units == self.units
+
+        return Datum(
+            intensity=datum.intensity,
+            units=datum.units,
+            clipped=datum.clipped,
+            deviation=self.handle(datum.intensity),
             meta=Meta(
                 capacity=datum.meta.capacity,
                 exposure=datum.meta.exposure,
