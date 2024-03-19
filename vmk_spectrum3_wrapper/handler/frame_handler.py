@@ -6,7 +6,7 @@ from vmk_spectrum3_wrapper.detector import Detector
 from vmk_spectrum3_wrapper.device.config import _ADC, _DETECTOR
 from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
 from vmk_spectrum3_wrapper.noise import Noise
-from vmk_spectrum3_wrapper.typing import Array, Digit
+from vmk_spectrum3_wrapper.typing import Array, Digit, U
 from vmk_spectrum3_wrapper.units import Units
 
 
@@ -61,12 +61,13 @@ class ClipHandler(FrameHandler):
         self.adc = adc or _ADC  # TODO:
         self.value_max = self.adc.value_max
 
-    def handle(self, value: Array[Digit]) -> Array[bool]:
-        return value >= self.value_max
+    def kernel(self, value: Array[Digit]) -> Array[bool]:
+        return value == self.value_max
 
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
+        assert datum.n_times == 1, 'Only 1d `datum` are supported!'
 
         #
         if self.skip:
@@ -75,13 +76,9 @@ class ClipHandler(FrameHandler):
         return Datum(
             intensity=datum.intensity,
             units=datum.units,
-            clipped=self.handle(datum.intensity),
-            meta=Meta(
-                capacity=datum.meta.capacity,
-                exposure=datum.meta.exposure,
-                started_at=datum.meta.started_at,
-                finished_at=datum.meta.finished_at,
-            ),
+            clipped=self.kernel(datum.intensity),
+            deviation=datum.deviation,
+            meta=datum.meta,
         )
 
 
@@ -98,28 +95,27 @@ class ScaleHandler(FrameHandler):
     def units(self) -> Units:
         return self._units
 
-    @property
-    def scale(self) -> float:
-        return self._scale
+    def kernel(self, value: Array[Digit] | None) -> Array[U] | None:
+        if value is None:
+            return None
+
+        return self._scale*value
 
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
+        assert datum.n_times == 1, 'Only 1d `datum` are supported!'
 
         #
         if self.skip:
             return datum
 
         return Datum(
-            intensity=self.scale*datum.intensity,
+            intensity=self.kernel(datum.intensity),
             units=self.units,
             clipped=datum.clipped,
-            meta=Meta(
-                capacity=datum.meta.capacity,
-                exposure=datum.meta.exposure,
-                started_at=datum.meta.started_at,
-                finished_at=datum.meta.finished_at,
-            ),
+            deviation=self.kernel(datum.deviation),
+            meta=datum.meta,
         )
 
 
@@ -130,6 +126,7 @@ class OffsetHandler(FrameHandler):
     def __init__(self, offset: Data, skip: bool = False):
         super().__init__(skip=skip)
 
+        assert offset.n_times == 1, 'Only 1d `datum` are supported!'
         self._offset = offset
 
     @property
@@ -143,6 +140,8 @@ class OffsetHandler(FrameHandler):
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == self.units
+        assert datum.n_times == 1, 'Only 1d `datum` are supported!'
+        assert datum.n_numbers == self.offset.n_numbers
 
         #
         if self.skip:
@@ -152,12 +151,8 @@ class OffsetHandler(FrameHandler):
             intensity=datum.intensity - self.offset.intensity,
             units=datum.units,
             clipped=datum.clipped | self.offset.clipped,
-            meta=Meta(
-                capacity=datum.meta.capacity,
-                exposure=datum.meta.exposure,
-                started_at=datum.meta.started_at,
-                finished_at=datum.meta.finished_at,
-            ),
+            deviation=np.sqrt(datum.deviation**2 + self.offset.deviation**2),
+            meta=datum.meta,
         )
 
 
@@ -179,12 +174,13 @@ class DeviationHandler(FrameHandler):
             n_frames=1,
         )
 
-    def handle(self, value: Array[Digit]) -> Array[Digit]:
+    def kernel(self, value: Array[Digit]) -> Array[Digit]:
         return self.noise(value)
 
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == self.units
+        assert datum.n_times == 1, 'Only 1d `datum` are supported!'
 
         #
         if self.skip:
@@ -194,11 +190,6 @@ class DeviationHandler(FrameHandler):
             intensity=datum.intensity,
             units=datum.units,
             clipped=datum.clipped,
-            deviation=self.handle(datum.intensity),
-            meta=Meta(
-                capacity=datum.meta.capacity,
-                exposure=datum.meta.exposure,
-                started_at=datum.meta.started_at,
-                finished_at=datum.meta.finished_at,
-            ),
+            deviation=self.kernel(datum.intensity),
+            meta=datum.meta,
         )
