@@ -32,12 +32,17 @@ class SwapHandler(FrameHandler):
         if value is None:
             return None
 
-        return value[::-1]
+        match value.ndim:
+            case 1:
+                return value[::-1]
+            case 2:
+                return np.fliplr(value)
+            case _:
+                raise ValueError
 
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
-        assert datum.n_times == 1, 'Only 1d `datum` are supported!'
 
         #
         if self.skip:
@@ -67,7 +72,6 @@ class ClipHandler(FrameHandler):
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
-        assert datum.n_times == 1, 'Only 1d `datum` are supported!'
 
         #
         if self.skip:
@@ -104,7 +108,6 @@ class ScaleHandler(FrameHandler):
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
-        assert datum.n_times == 1, 'Only 1d `datum` are supported!'
 
         #
         if self.skip:
@@ -140,7 +143,6 @@ class OffsetHandler(FrameHandler):
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == self.units
-        assert datum.n_times == 1, 'Only 1d `datum` are supported!'
         assert datum.n_numbers == self.offset.n_numbers
 
         #
@@ -180,7 +182,6 @@ class DeviationHandler(FrameHandler):
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == self.units
-        assert datum.n_times == 1, 'Only 1d `datum` are supported!'
 
         #
         if self.skip:
