@@ -11,26 +11,30 @@ from vmk_spectrum3_wrapper.units import Units
 class FrameHandler(BaseHandler):
     """One frame or not reduce dimension handlers."""
 
+    def __init__(self, skip: bool = False):
+        self._skip = skip
+
+    @property
+    def skip(self) -> bool:
+        return self._skip
+
 
 # --------        raw signal handlers        --------
 class SwapHandler(FrameHandler):
-    """Handler to swap a datum if needed."""
+    """Handler to swap a frame if needed."""
 
-    def __init__(self, flag: bool = False):
-        self._flag = flag
+    def __init__(self, skip: bool = False):
+        super().__init__(skip=skip)
 
-        if self._flag:
+        if not self.skip:
             raise NotImplementedError
-
-    @property
-    def flag(self) -> bool:
-        return self._flag
 
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
 
-        if not self.flag:
+        #
+        if self.skip:
             return datum
 
         return Datum(
@@ -48,7 +52,9 @@ class SwapHandler(FrameHandler):
 class ClipHandler(FrameHandler):
     """Handler to clip a datum."""
 
-    def __init__(self, adc: ADC | None = None):
+    def __init__(self, adc: ADC | None = None, skip: bool = False):
+        super().__init__(skip=skip)
+
         self.adc = adc or _ADC  # TODO:
         self.value_max = self.adc.value_max
 
@@ -58,6 +64,10 @@ class ClipHandler(FrameHandler):
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
+
+        #
+        if self.skip:
+            return datum
 
         return Datum(
             intensity=datum.intensity,
@@ -75,7 +85,9 @@ class ClipHandler(FrameHandler):
 class ScaleHandler(FrameHandler):
     """Handler to scale a datum from `Units.digit` to `units`."""
 
-    def __init__(self, units: Units | None = None):
+    def __init__(self, units: Units | None = None, skip: bool = False):
+        super().__init__(skip=skip)
+
         self._units = units or Units.percent
         self._scale = self.units.scale
 
@@ -90,6 +102,10 @@ class ScaleHandler(FrameHandler):
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
+
+        #
+        if self.skip:
+            return datum
 
         return Datum(
             intensity=self.scale*datum.intensity,
@@ -108,7 +124,9 @@ class ScaleHandler(FrameHandler):
 class OffsetHandler(FrameHandler):
     """Calibrate `data` by offset intensity."""
 
-    def __init__(self, offset: Data):
+    def __init__(self, offset: Data, skip: bool = False):
+        super().__init__(skip=skip)
+
         self._offset = offset
 
     @property
@@ -122,6 +140,10 @@ class OffsetHandler(FrameHandler):
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == self.units
+
+        #
+        if self.skip:
+            return datum
 
         return Datum(
             intensity=datum.intensity - self.offset.intensity,
@@ -140,7 +162,9 @@ class OffsetHandler(FrameHandler):
 class DeviationHandler(FrameHandler):
     """Calculate a deviation of the `data`."""
 
-    def __init__(self, units: Units, adc: ADC | None = None, detector: Detector | None = None):
+    def __init__(self, units: Units, adc: ADC | None = None, detector: Detector | None = None, skip: bool = False):
+        super().__init__(skip=skip)
+
         self.units = units
         self.adc = adc or _ADC  # FIXME: remove it!
         self.detector = detector or _DETECTOR  # FIXME: remove it!
@@ -158,6 +182,10 @@ class DeviationHandler(FrameHandler):
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == self.units
+
+        #
+        if self.skip:
+            return datum
 
         return Datum(
             intensity=datum.intensity,
