@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from vmk_spectrum3_wrapper.data import Data, Datum
 from vmk_spectrum3_wrapper.filter.base_filter import BaseFilter
 from vmk_spectrum3_wrapper.filter.buffer_filter import BufferFilter, IntegrationFilter
-from vmk_spectrum3_wrapper.filter.flow_filter import ClipFilter, FlowFilter, OffsetFilter, ScaleFilter, ShuffleFilter
+from vmk_spectrum3_wrapper.filter.flow_filter import ClipFilter, DeviationFilter, FlowFilter, OffsetFilter, ScaleFilter, ShuffleFilter
 from vmk_spectrum3_wrapper.shuffle import Shuffle
 from vmk_spectrum3_wrapper.units import Units
 
@@ -46,11 +46,14 @@ class CoreFilterPreset(PipeFilter):
         bias: Data | None = None,
         dark: Data | None = None,
     ):
+        units = units or Units.percent
+
         super().__init__(filters=[
             ShuffleFilter(shuffle) if isinstance(shuffle, Shuffle) else None,
             ClipFilter(),
-            ScaleFilter(units or Units.percent),
+            ScaleFilter(units=units),
             OffsetFilter(bias) if isinstance(bias, Data) else None,
+            DeviationFilter(units=units) if isinstance(bias, Data) else None,
             OffsetFilter(dark) if isinstance(dark, Data) else None,
         ])
 
