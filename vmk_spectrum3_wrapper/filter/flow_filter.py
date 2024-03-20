@@ -1,3 +1,5 @@
+from typing import Literal
+
 import numpy as np
 
 from vmk_spectrum3_wrapper.adc import ADC
@@ -144,6 +146,18 @@ class OffsetFilter(FlowFilter):
     def units(self) -> Units:
         return self.offset.units
 
+    def kernel(self, value: Array | None, kind: Literal['intensity', 'clipped', 'deviation']) -> Array | None:
+        if (value is None):
+            return None
+
+        match kind:
+            case 'intensity':
+                return value - self.offset.intensity.flatten()
+            case 'clipped':
+                return value | self.offset.clipped.flatten()
+            case 'deviation':
+                return np.sqrt(value**2 + self.offset.deviation.flatten()**2)
+
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == self.units
@@ -154,10 +168,10 @@ class OffsetFilter(FlowFilter):
             return datum
 
         return Datum(
-            intensity=datum.intensity - self.offset.intensity,
+            intensity=self.kernel(datum.intensity, kind='intensity'),
             units=datum.units,
-            clipped=datum.clipped | self.offset.clipped,
-            deviation=np.sqrt(datum.deviation**2 + self.offset.deviation**2),
+            clipped=self.kernel(datum.clipped, kind='clipped'),
+            deviation=self.kernel(datum.deviation, kind='deviation'),
             meta=datum.meta,
         )
 
