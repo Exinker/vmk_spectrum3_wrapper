@@ -28,8 +28,8 @@ class FlowFilter(BaseFilter):
 
 
 # --------        core filters        --------
-class SwapFilter(FlowFilter):
-    """Filter to swap a frame if needed."""
+class ShuffleFilter(FlowFilter):
+    """Filter to shuffle a frame if needed."""
 
     def __init__(self, skip: bool = True):
         super().__init__(skip=skip)
