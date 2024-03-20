@@ -39,19 +39,33 @@ class PipeFilter(BaseFilter):
 # --------        presets        --------
 class CoreFilterPreset(PipeFilter):
 
-    def __init__(self, shuffle: Shuffle | None = None, dark: Data | None = None, units: Units = Units.percent):
+    def __init__(
+        self,
+        shuffle: Shuffle | None = None,
+        units: Units = None,
+        bias: Data | None = None,
+        dark: Data | None = None,
+    ):
         super().__init__(filters=[
             ShuffleFilter(shuffle) if isinstance(shuffle, Shuffle) else None,
             ClipFilter(),
-            ScaleFilter(units),
+            ScaleFilter(units or Units.percent),
+            OffsetFilter(bias) if isinstance(bias, Data) else None,
             OffsetFilter(dark) if isinstance(dark, Data) else None,
         ])
 
 
 class IntegrationFilterPreset(PipeFilter):
 
-    def __init__(self, dark: Data | None = None, units: Units = Units.percent, is_averaging: bool = True):
+    def __init__(
+        self,
+        shuffle: Shuffle | None = None,
+        units: Units | None = None,
+        bias: Data | None = None,
+        dark: Data | None = None,
+        is_averaging: bool = True,
+    ):
         super().__init__(filters=[
-            CoreFilterPreset(dark=dark, units=units),
+            CoreFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark),
             IntegrationFilter(is_averaging=is_averaging),
         ])
