@@ -10,7 +10,7 @@ from vmk_spectrum3_wrapper.typing import Array, Digit, U
 from vmk_spectrum3_wrapper.units import Units
 
 
-class FrameFilter(BaseFilter):
+class FlowFilter(BaseFilter):
     """One frame or not reduce dimension filters."""
 
     def __init__(self, skip: bool = False):
@@ -20,9 +20,13 @@ class FrameFilter(BaseFilter):
     def skip(self) -> bool:
         return self._skip
 
+    # @abstractmethod
+    # def kernel(self, value: Array[U] | None) -> Array[Any] | None:
+    #     raise NotImplementedError
+
 
 # --------        core filters        --------
-class SwapFilter(FrameFilter):
+class SwapFilter(FlowFilter):
     """Filter to swap a frame if needed."""
 
     def __init__(self, skip: bool = True):
@@ -57,7 +61,7 @@ class SwapFilter(FrameFilter):
         )
 
 
-class ClipFilter(FrameFilter):
+class ClipFilter(FlowFilter):
     """Filter to clip a datum."""
 
     def __init__(self, adc: ADC | None = None, skip: bool = False):
@@ -86,7 +90,7 @@ class ClipFilter(FrameFilter):
         )
 
 
-class ScaleFilter(FrameFilter):
+class ScaleFilter(FlowFilter):
     """Filter to scale a datum from `Units.digit` to `units`."""
 
     def __init__(self, units: Units | None = None, skip: bool = False):
@@ -123,7 +127,7 @@ class ScaleFilter(FrameFilter):
 
 
 # --------        calibrations        --------
-class OffsetFilter(FrameFilter):
+class OffsetFilter(FlowFilter):
     """Calibrate `data` by offset intensity."""
 
     def __init__(self, offset: Data, skip: bool = False):
@@ -159,7 +163,7 @@ class OffsetFilter(FrameFilter):
 
 
 # --------        others        --------
-class DeviationFilter(FrameFilter):
+class DeviationFilter(FlowFilter):
     """Calculate a deviation of the `data`."""
 
     def __init__(self, units: Units, adc: ADC | None = None, detector: Detector | None = None, skip: bool = False):

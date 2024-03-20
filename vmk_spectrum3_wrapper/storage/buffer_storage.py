@@ -13,12 +13,12 @@ from vmk_spectrum3_wrapper.units import Units
 
 class BufferStorage(BaseStorage):
 
-    def __init__(self, filter: PipeFilter | None = None) -> None:
-        if isinstance(filter, PipeFilter):
-            assert any(isinstance(h, BufferFilter) for h in filter), 'PipeFilter should contains one BufferFilter at least!'
+    def __init__(self, handler: PipeFilter | None = None) -> None:
+        if isinstance(handler, PipeFilter):
+            assert any(isinstance(h, BufferFilter) for h in handler), 'PipeFilter should contains one BufferFilter at least!'
 
         #
-        super().__init__(filter=filter or IntegrationFilterPreset())
+        super().__init__(handler=handler or IntegrationFilterPreset())
 
         self._buffer = []
 
@@ -49,7 +49,7 @@ class BufferStorage(BaseStorage):
         self.buffer.append(frame)
 
         # data
-        if len(self.buffer) == self.buffer_size:  # если буфер заполнен, то ранные обрабатываются `filter`, передаются в `data` и буфер очищается
+        if len(self.buffer) == self.buffer_size:  # если буфер заполнен, то ранные обрабатываются `handler`, передаются в `data` и буфер очищается
             buffer = np.array(self.buffer)
 
             datum = Datum(
@@ -62,7 +62,7 @@ class BufferStorage(BaseStorage):
                     finished_at=time_at,
                 ),
             )
-            datum = self.filter(datum)
+            datum = self.handler(datum)
             self.data.append(datum)
 
             #

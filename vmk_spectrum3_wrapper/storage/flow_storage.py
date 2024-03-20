@@ -1,7 +1,7 @@
 import time
 
 from vmk_spectrum3_wrapper.data import Datum, Meta
-from vmk_spectrum3_wrapper.filter.pipe_filter import PipeFilter, CoreFilterPreset
+from vmk_spectrum3_wrapper.filter.pipe_filter import CoreFilterPreset, PipeFilter
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
 from vmk_spectrum3_wrapper.typing import Array, Digit
 from vmk_spectrum3_wrapper.units import Units
@@ -9,8 +9,8 @@ from vmk_spectrum3_wrapper.units import Units
 
 class FlowStorage(BaseStorage):
 
-    def __init__(self, filter: PipeFilter | None = None) -> None:
-        super().__init__(filter=filter or CoreFilterPreset())
+    def __init__(self, handler: PipeFilter | None = None) -> None:
+        super().__init__(handler=handler or CoreFilterPreset())
 
     # --------        filters        --------
     def put(self, frame: Array[Digit]) -> None:
@@ -35,7 +35,7 @@ class FlowStorage(BaseStorage):
                 finished_at=time_at,
             ),
         )
-        datum = self.filter(datum)
+        datum = self.handler(datum)
 
         self.data.append(datum)
 

@@ -3,17 +3,17 @@ from collections.abc import Sequence
 from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.filter.base_filter import BaseFilter
 from vmk_spectrum3_wrapper.filter.buffer_filter import BufferFilter, IntegrationFilter
-from vmk_spectrum3_wrapper.filter.frame_filter import ClipFilter, FrameFilter, ScaleFilter, SwapFilter
+from vmk_spectrum3_wrapper.filter.flow_filter import ClipFilter, FlowFilter, ScaleFilter, SwapFilter
 from vmk_spectrum3_wrapper.units import Units
 
 
 class PipeFilter(BaseFilter):
 
-    def __init__(self, filters: Sequence[FrameFilter | BufferFilter]):
+    def __init__(self, filters: Sequence[FlowFilter | BufferFilter]):
         self._filters = filters
 
     @property
-    def filters(self) -> Sequence[FrameFilter]:
+    def filters(self) -> Sequence[FlowFilter]:
         return self._filters
 
     @property
@@ -28,7 +28,7 @@ class PipeFilter(BaseFilter):
 
         return datum
 
-    def __getitem__(self, index: int) -> FrameFilter:
+    def __getitem__(self, index: int) -> FlowFilter:
         return self.filters[index]
 
 

@@ -4,13 +4,12 @@ from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.exception import SetupStorageError
 from vmk_spectrum3_wrapper.filter import PipeFilter
 from vmk_spectrum3_wrapper.typing import MilliSecond, Second
-from vmk_spectrum3_wrapper.units import Units
 
 
 class BaseStorage(ABC):
 
-    def __init__(self, filter: PipeFilter):
-        self._filter = filter
+    def __init__(self, handler: PipeFilter):
+        self._handler = handler
 
         self._exposure = None
         self._capacity = None
@@ -34,16 +33,12 @@ class BaseStorage(ABC):
         return self._capacity
 
     @property
-    def filter(self) -> PipeFilter:
-        return self._filter
+    def handler(self) -> PipeFilter:
+        return self._handler
 
     @property
     def data(self) -> list[Datum]:
         return self._data
-
-    @property
-    def units(self) -> Units:
-        return self.filter.units
 
     @property
     def duration(self) -> Second:
@@ -88,4 +83,4 @@ class BaseStorage(ABC):
     def __repr__(self) -> str:
         cls = self.__class__
 
-        return f'{cls.__name__}(units: {self.units.value})'
+        return f'{cls.__name__}(handler: {self.handler})'
