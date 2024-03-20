@@ -1,18 +1,18 @@
 import time
 
 from vmk_spectrum3_wrapper.data import Datum, Meta
-from vmk_spectrum3_wrapper.handler import ClipHandler, DeviationHandler, PipeHandler, ScaleHandler, SwapHandler
+from vmk_spectrum3_wrapper.filter.pipe_filter import CoreFilterPreset, PipeFilter
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
 from vmk_spectrum3_wrapper.typing import Array, Digit
 from vmk_spectrum3_wrapper.units import Units
 
 
-class FrameStorage(BaseStorage):
+class FlowStorage(BaseStorage):
 
-    def __init__(self, handler: PipeHandler | None = None) -> None:
-        super().__init__(handler=handler or PipeHandler([SwapHandler(skip=True), ClipHandler(), ScaleHandler(), DeviationHandler()]))
+    def __init__(self, handler: PipeFilter | None = None) -> None:
+        super().__init__(handler=handler or CoreFilterPreset())
 
-    # --------        handlers        --------
+    # --------        filters        --------
     def put(self, frame: Array[Digit]) -> None:
         """Add the frame to storage."""
 

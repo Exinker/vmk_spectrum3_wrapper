@@ -1,17 +1,17 @@
 import numpy as np
 
 from vmk_spectrum3_wrapper.adc import ADC
-from vmk_spectrum3_wrapper.data import Data, Datum, Meta
+from vmk_spectrum3_wrapper.data import Data, Datum
 from vmk_spectrum3_wrapper.detector import Detector
 from vmk_spectrum3_wrapper.device.config import _ADC, _DETECTOR
-from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
+from vmk_spectrum3_wrapper.filter.base_filter import BaseFilter
 from vmk_spectrum3_wrapper.noise import Noise
 from vmk_spectrum3_wrapper.typing import Array, Digit, U
 from vmk_spectrum3_wrapper.units import Units
 
 
-class FrameHandler(BaseHandler):
-    """One frame or not reduce dimension handlers."""
+class FlowFilter(BaseFilter):
+    """One frame or not reduce dimension filters."""
 
     def __init__(self, skip: bool = False):
         self._skip = skip
@@ -20,12 +20,16 @@ class FrameHandler(BaseHandler):
     def skip(self) -> bool:
         return self._skip
 
+    # @abstractmethod
+    # def kernel(self, value: Array[U] | None) -> Array[Any] | None:
+    #     raise NotImplementedError
 
-# --------        raw signal handlers        --------
-class SwapHandler(FrameHandler):
-    """Handler to swap a frame if needed."""
 
-    def __init__(self, skip: bool = False):
+# --------        core filters        --------
+class SwapFilter(FlowFilter):
+    """Filter to swap a frame if needed."""
+
+    def __init__(self, skip: bool = True):
         super().__init__(skip=skip)
 
     def kernel(self, value: Array[Digit] | None) -> Array[Digit] | None:
@@ -57,8 +61,8 @@ class SwapHandler(FrameHandler):
         )
 
 
-class ClipHandler(FrameHandler):
-    """Handler to clip a datum."""
+class ClipFilter(FlowFilter):
+    """Filter to clip a datum."""
 
     def __init__(self, adc: ADC | None = None, skip: bool = False):
         super().__init__(skip=skip)
@@ -86,8 +90,8 @@ class ClipHandler(FrameHandler):
         )
 
 
-class ScaleHandler(FrameHandler):
-    """Handler to scale a datum from `Units.digit` to `units`."""
+class ScaleFilter(FlowFilter):
+    """Filter to scale a datum from `Units.digit` to `units`."""
 
     def __init__(self, units: Units | None = None, skip: bool = False):
         super().__init__(skip=skip)
@@ -123,7 +127,7 @@ class ScaleHandler(FrameHandler):
 
 
 # --------        calibrations        --------
-class OffsetHandler(FrameHandler):
+class OffsetFilter(FlowFilter):
     """Calibrate `data` by offset intensity."""
 
     def __init__(self, offset: Data, skip: bool = False):
@@ -159,7 +163,7 @@ class OffsetHandler(FrameHandler):
 
 
 # --------        others        --------
-class DeviationHandler(FrameHandler):
+class DeviationFilter(FlowFilter):
     """Calculate a deviation of the `data`."""
 
     def __init__(self, units: Units, adc: ADC | None = None, detector: Detector | None = None, skip: bool = False):

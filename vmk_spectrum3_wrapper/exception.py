@@ -34,6 +34,6 @@ class SetupStorageError(StorageError):
     pass
 
 
-# --------        handlers        --------
+# --------        filters        --------
 def eprint(message: str, error: Exception, file: TextIO | Path = sys.stdout) -> None:
     print(f'{message} {error}', file=file, flush=True)

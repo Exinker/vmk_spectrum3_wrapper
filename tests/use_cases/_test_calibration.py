@@ -2,7 +2,7 @@ import pytest
 
 from vmk_spectrum3_wrapper.calibration import calibrate_dark
 from vmk_spectrum3_wrapper.device import Device
-from vmk_spectrum3_wrapper.handler import AverageHandler, OffsetHandler, PipeHandler, ScaleHandler
+from vmk_spectrum3_wrapper.filter import IntegrationFilter, OffsetFilter, PipeFilter, ScaleFilter
 from vmk_spectrum3_wrapper.storage import BufferStorage
 from vmk_spectrum3_wrapper.typing import MilliSecond
 
@@ -29,10 +29,10 @@ def test_calibrate_dark(device: Device, exposure: MilliSecond = 4):
         exposure=exposure,
         capacity=2,
         storage=BufferStorage(
-            handler=PipeHandler([
-                ScaleHandler(),
-                AverageHandler(),
-                OffsetHandler(
+            filter=PipeFilter([
+                ScaleFilter(),
+                IntegrationFilter(),
+                OffsetFilter(
                     dark=dark,
                 ),
             ]),

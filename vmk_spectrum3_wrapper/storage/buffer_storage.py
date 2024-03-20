@@ -4,7 +4,8 @@ from collections.abc import Sequence
 import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum, Meta
-from vmk_spectrum3_wrapper.handler import AverageHandler, BufferHandler, ClipHandler, DeviationHandler, PipeHandler, ScaleHandler, SwapHandler
+from vmk_spectrum3_wrapper.filter.buffer_filter import BufferFilter
+from vmk_spectrum3_wrapper.filter.pipe_filter import IntegrationFilterPreset, PipeFilter
 from vmk_spectrum3_wrapper.storage.base_storage import BaseStorage
 from vmk_spectrum3_wrapper.typing import Array
 from vmk_spectrum3_wrapper.units import Units
@@ -12,12 +13,12 @@ from vmk_spectrum3_wrapper.units import Units
 
 class BufferStorage(BaseStorage):
 
-    def __init__(self, handler: PipeHandler | None = None) -> None:
-        if isinstance(handler, PipeHandler):
-            assert any(isinstance(h, BufferHandler) for h in handler), 'PipeHandler should contains one BufferHandler at least!'
+    def __init__(self, handler: PipeFilter | None = None) -> None:
+        if isinstance(handler, PipeFilter):
+            assert any(isinstance(h, BufferFilter) for h in handler), 'PipeFilter should contains one BufferFilter at least!'
 
         #
-        super().__init__(handler=handler or PipeHandler([SwapHandler(skip=True), ClipHandler(), ScaleHandler(), DeviationHandler(), AverageHandler()]))
+        super().__init__(handler=handler or IntegrationFilterPreset())
 
         self._buffer = []
 
@@ -32,7 +33,7 @@ class BufferStorage(BaseStorage):
         if isinstance(self.capacity, Sequence):
             return sum(self.capacity)
 
-    # --------        handlers        --------
+    # --------        filters        --------
     def put(self, frame: Array[int]) -> None:
         """Добавить новый кадр `frame` в буфер."""
 

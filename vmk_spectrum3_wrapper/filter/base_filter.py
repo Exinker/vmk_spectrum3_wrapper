@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from vmk_spectrum3_wrapper.typing import Array, U
 
 
-class BaseHandler(ABC):
+class BaseFilter(ABC):
 
     # --------        private        --------
     def __bool__(self) -> bool:
