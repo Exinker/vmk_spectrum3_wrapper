@@ -53,7 +53,7 @@ class BaseData(ABC):
     def number(self) -> Array[int]:
         return np.arange(self.n_numbers)
 
-    # --------        handlers        --------
+    # --------        filters        --------
     @abstractmethod
     def show(self) -> None:
         raise NotImplementedError
@@ -139,7 +139,7 @@ class Datum(BaseData):
     def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: Meta | None = None):
         super().__init__(intensity=intensity, units=units, clipped=clipped, deviation=deviation, meta=meta)
 
-    # --------        handlers        --------
+    # --------        filters        --------
     def show(self) -> None:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
@@ -170,7 +170,7 @@ class Data(BaseData):
     def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: Meta | None = None):
         super().__init__(intensity=intensity, units=units, clipped=clipped, deviation=deviation, meta=meta)
 
-    # --------        handlers        --------
+    # --------        filters        --------
     @classmethod
     def squeeze(cls, data: Sequence[Datum]) -> 'Data':
 

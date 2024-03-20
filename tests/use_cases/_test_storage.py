@@ -1,7 +1,7 @@
 import pytest
 
 from vmk_spectrum3_wrapper.device import Device
-from vmk_spectrum3_wrapper.handler import AverageHandler, PipeHandler, ScaleHandler
+from vmk_spectrum3_wrapper.filter import IntegrationFilter, PipeFilter, ScaleFilter
 from vmk_spectrum3_wrapper.storage import BufferStorage
 from vmk_spectrum3_wrapper.typing import MilliSecond
 
@@ -33,9 +33,9 @@ def test_read_buffer_storage(device: Device, exposure: MilliSecond = 4, capacity
         exposure=exposure,
         capacity=capacity,
         storage=BufferStorage(
-            handler=PipeHandler([
-                ScaleHandler(),
-                AverageHandler(),
+            filter=PipeFilter([
+                ScaleFilter(),
+                IntegrationFilter(),
             ]),
         ),
     )

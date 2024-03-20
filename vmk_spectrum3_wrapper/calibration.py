@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from vmk_spectrum3_wrapper.device import Device
-from vmk_spectrum3_wrapper.handler import AverageHandler, PipeHandler, ScaleHandler
+from vmk_spectrum3_wrapper.filter import IntegrationFilter, PipeFilter, ScaleFilter
 from vmk_spectrum3_wrapper.storage import BufferStorage
 from vmk_spectrum3_wrapper.typing import MilliSecond
 
@@ -16,9 +16,9 @@ def calibrate_dark(device: Device, exposure: MilliSecond, capacity: int = 100) -
         exposure=exposure,
         capacity=capacity,
         storage=BufferStorage(
-            handler=PipeHandler([
-                ScaleHandler(),
-                AverageHandler(),
+            filter=PipeFilter([
+                ScaleFilter(),
+                IntegrationFilter(),
             ]),
         ),
     )

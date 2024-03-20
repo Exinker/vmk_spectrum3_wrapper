@@ -1,25 +1,26 @@
-from typing import Callable
-
 import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum, Meta
-from vmk_spectrum3_wrapper.handler.base_handler import BaseHandler
-from vmk_spectrum3_wrapper.typing import Array, U
+from vmk_spectrum3_wrapper.filter.base_filter import BaseFilter
 
 
-class BufferHandler(BaseHandler):
-    """Buffer or reduce dimension handlers."""
+class BufferFilter(BaseFilter):
+    """Buffer or reduce dimension filters."""
 
 
-class IntegralHandler(BufferHandler):
+# --------        standard integration filters        --------
+class IntegrationFilter(BufferFilter):
+
+    def __init__(self, is_averaging: bool = True):
+        self.is_averaging = is_averaging
 
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
-        assert datum.n_times > 1, 'Buffered datum are supported only!'
+        factor = datum.n_times if self.is_averaging else False
 
-        intensity = np.sum(datum.intensity, axis=0)
+        intensity = np.sum(datum.intensity, axis=0)/factor
         clipped = np.max(datum.clipped, axis=0) if isinstance(datum.clipped, np.ndarray) else None
-        deviation = np.sqrt(np.sum(datum.deviation**2, axis=0)) if isinstance(datum.deviation, np.ndarray) else None
+        deviation = np.sqrt(np.sum(datum.deviation**2, axis=0)/factor) if isinstance(datum.deviation, np.ndarray) else None
 
         return Datum(
             intensity=intensity,
@@ -35,35 +36,8 @@ class IntegralHandler(BufferHandler):
         )
 
 
-class AverageHandler(BufferHandler):
-
-    # --------        private        --------
-    def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
-        assert datum.n_times > 1, 'Buffered datum are supported only!'
-
-        intensity = np.mean(datum.intensity, axis=0)
-        clipped = np.max(datum.clipped, axis=0) if isinstance(datum.clipped, np.ndarray) else None
-        deviation = np.sqrt(np.sum(datum.deviation**2, axis=0)) / datum.n_times if isinstance(datum.deviation, np.ndarray) else None
-
-        return Datum(
-            intensity=intensity,
-            units=datum.units,
-            clipped=clipped,
-            deviation=deviation,
-            meta=Meta(
-                capacity=datum.n_times,
-                exposure=datum.meta.exposure,
-                started_at=datum.meta.started_at,
-                finished_at=datum.meta.finished_at,
-            ),
-        )
-
-
-# --------        high dynamic range (HDR) handlers        --------
-class HighDynamicRangeHandler(BufferHandler):
-
-    def __init__(self, noise: Callable[[Array[U]], Array[U]]):
-        self.noise = noise
+# --------        high dynamic range (HDR) integration filter        --------
+class HighDynamicRangeIntegrationFilter(BufferFilter):
 
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:

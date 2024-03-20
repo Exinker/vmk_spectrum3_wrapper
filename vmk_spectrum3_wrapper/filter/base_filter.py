@@ -1,9 +1,14 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 from vmk_spectrum3_wrapper.typing import Array, U
 
 
-class BaseHandler(ABC):
+class BaseFilter(ABC):
+
+    # @abstractmethod
+    # def kernel(self, value: Array[U] | None) -> Array[Any] | None:
+    #     raise NotImplementedError
 
     # --------        private        --------
     def __bool__(self) -> bool:
