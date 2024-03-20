@@ -4,6 +4,7 @@ from vmk_spectrum3_wrapper.data import Data, Datum
 from vmk_spectrum3_wrapper.filter.base_filter import BaseFilter
 from vmk_spectrum3_wrapper.filter.buffer_filter import BufferFilter, IntegrationFilter
 from vmk_spectrum3_wrapper.filter.flow_filter import ClipFilter, FlowFilter, OffsetFilter, ScaleFilter, ShuffleFilter
+from vmk_spectrum3_wrapper.shuffle import Shuffle
 from vmk_spectrum3_wrapper.units import Units
 
 
@@ -38,12 +39,12 @@ class PipeFilter(BaseFilter):
 # --------        presets        --------
 class CoreFilterPreset(PipeFilter):
 
-    def __init__(self, dark: Data | None = None, units: Units = Units.percent):
+    def __init__(self, shuffle: Shuffle | None = None, dark: Data | None = None, units: Units = Units.percent):
         super().__init__(filters=[
-            ShuffleFilter(),  # TODO: add `shuffle`
+            ShuffleFilter(shuffle) if isinstance(shuffle, Shuffle) else None,
             ClipFilter(),
-            ScaleFilter(units=units),
-            OffsetFilter(offset=dark) if isinstance(dark, Data) else None,
+            ScaleFilter(units),
+            OffsetFilter(dark) if isinstance(dark, Data) else None,
         ])
 
 

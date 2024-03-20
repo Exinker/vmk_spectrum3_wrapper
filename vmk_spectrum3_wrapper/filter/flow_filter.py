@@ -8,6 +8,7 @@ from vmk_spectrum3_wrapper.detector import Detector
 from vmk_spectrum3_wrapper.device.config import _ADC, _DETECTOR
 from vmk_spectrum3_wrapper.filter.base_filter import BaseFilter
 from vmk_spectrum3_wrapper.noise import Noise
+from vmk_spectrum3_wrapper.shuffle import Shuffle
 from vmk_spectrum3_wrapper.typing import Array, Digit, U
 from vmk_spectrum3_wrapper.units import Units
 
@@ -23,6 +24,9 @@ class FlowFilter(BaseFilter):
 # --------        core filters        --------
 class ShuffleFilter(FlowFilter):
     """Filter to shuffle a frame if needed."""
+
+    def __init__(self, shuffle: Shuffle):
+        self.shuffle = shuffle
 
     def kernel(self, value: Array[Digit] | None) -> Array[Digit] | None:
         if value is None:
