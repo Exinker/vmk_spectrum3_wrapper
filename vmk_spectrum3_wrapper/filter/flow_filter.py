@@ -15,13 +15,6 @@ from vmk_spectrum3_wrapper.units import Units
 class FlowFilter(BaseFilter):
     """One frame or not reduce dimension filters."""
 
-    def __init__(self, skip: bool = False):
-        self._skip = skip
-
-    @property
-    def skip(self) -> bool:
-        return self._skip
-
     # @abstractmethod
     # def kernel(self, value: Array[U] | None) -> Array[Any] | None:
     #     raise NotImplementedError
@@ -30,9 +23,6 @@ class FlowFilter(BaseFilter):
 # --------        core filters        --------
 class ShuffleFilter(FlowFilter):
     """Filter to shuffle a frame if needed."""
-
-    def __init__(self, skip: bool = True):
-        super().__init__(skip=skip)
 
     def kernel(self, value: Array[Digit] | None) -> Array[Digit] | None:
         if value is None:
@@ -50,10 +40,6 @@ class ShuffleFilter(FlowFilter):
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
 
-        #
-        if self.skip:
-            return datum
-
         return Datum(
             intensity=self.kernel(datum.intensity),
             units=datum.units,
@@ -66,9 +52,7 @@ class ShuffleFilter(FlowFilter):
 class ClipFilter(FlowFilter):
     """Filter to clip a datum."""
 
-    def __init__(self, adc: ADC | None = None, skip: bool = False):
-        super().__init__(skip=skip)
-
+    def __init__(self, adc: ADC | None = None):
         self.adc = adc or _ADC  # TODO:
         self.value_max = self.adc.value_max
 
@@ -78,10 +62,6 @@ class ClipFilter(FlowFilter):
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
-
-        #
-        if self.skip:
-            return datum
 
         return Datum(
             intensity=datum.intensity,
@@ -95,9 +75,7 @@ class ClipFilter(FlowFilter):
 class ScaleFilter(FlowFilter):
     """Filter to scale a datum from `Units.digit` to `units`."""
 
-    def __init__(self, units: Units | None = None, skip: bool = False):
-        super().__init__(skip=skip)
-
+    def __init__(self, units: Units | None = None):
         self._units = units or Units.percent
         self._scale = self.units.scale
 
@@ -115,10 +93,6 @@ class ScaleFilter(FlowFilter):
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
 
-        #
-        if self.skip:
-            return datum
-
         return Datum(
             intensity=self.kernel(datum.intensity),
             units=self.units,
@@ -132,9 +106,7 @@ class ScaleFilter(FlowFilter):
 class OffsetFilter(FlowFilter):
     """Calibrate `data` by offset intensity."""
 
-    def __init__(self, offset: Data, skip: bool = False):
-        super().__init__(skip=skip)
-
+    def __init__(self, offset: Data):
         assert offset.n_times == 1, 'Only 1d `datum` are supported!'
         self._offset = offset
 
@@ -163,10 +135,6 @@ class OffsetFilter(FlowFilter):
         assert datum.units == self.units
         assert datum.n_numbers == self.offset.n_numbers
 
-        #
-        if self.skip:
-            return datum
-
         return Datum(
             intensity=self.kernel(datum.intensity, kind='intensity'),
             units=datum.units,
@@ -180,9 +148,7 @@ class OffsetFilter(FlowFilter):
 class DeviationFilter(FlowFilter):
     """Calculate a deviation of the `data`."""
 
-    def __init__(self, units: Units, adc: ADC | None = None, detector: Detector | None = None, skip: bool = False):
-        super().__init__(skip=skip)
-
+    def __init__(self, units: Units, adc: ADC | None = None, detector: Detector | None = None):
         self.units = units
         self.adc = adc or _ADC  # FIXME: remove it!
         self.detector = detector or _DETECTOR  # FIXME: remove it!
@@ -200,10 +166,6 @@ class DeviationFilter(FlowFilter):
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == self.units
-
-        #
-        if self.skip:
-            return datum
 
         return Datum(
             intensity=datum.intensity,
