@@ -4,7 +4,6 @@ from collections.abc import Sequence
 import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum
-from vmk_spectrum3_wrapper.exception import SetupStorageError
 from vmk_spectrum3_wrapper.filter import IntegrationFilterPreset, PipeFilter
 from vmk_spectrum3_wrapper.typing import Array, MilliSecond, Second
 from vmk_spectrum3_wrapper.units import Units
