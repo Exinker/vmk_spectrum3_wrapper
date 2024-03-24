@@ -15,7 +15,7 @@ from vmk_spectrum3_wrapper.units import Units
 
 
 class FlowFilter(BaseFilter):
-    """Not reduce dimension filters."""
+    """Не снижающий размерность фильтр."""
 
     @abstractmethod
     def kernel(self, value: Array[U] | None) -> Array[Any] | None:
@@ -24,7 +24,7 @@ class FlowFilter(BaseFilter):
 
 # --------        core filters        --------
 class ShuffleFilter(FlowFilter):
-    """Filter to shuffle a frame if needed."""
+    """Смещения и перестановок фильтр."""
 
     def __init__(self, shuffle: Shuffle):
         self.shuffle = shuffle
@@ -54,7 +54,7 @@ class ShuffleFilter(FlowFilter):
 
 
 class ClipFilter(FlowFilter):
-    """Filter to clip a datum."""
+    """Маскирование зашкаленных отсчетов фильтр."""
 
     def __init__(self, adc: ADC | None = None):
         self.adc = adc or _ADC  # TODO:
@@ -76,7 +76,7 @@ class ClipFilter(FlowFilter):
 
 
 class ScaleFilter(FlowFilter):
-    """Filter to scale a datum from `Units.digit` to `units`."""
+    """Масштабирования фильтр. Перевод из `Units.digit` в `units`."""
 
     def __init__(self, units: Units | None = None):
         self._units = units or Units.percent
@@ -106,7 +106,7 @@ class ScaleFilter(FlowFilter):
 
 # --------        calibrations        --------
 class OffsetFilter(FlowFilter):
-    """Calibrate `data` by offset intensity."""
+    """Смещение `intensity` на велиличину `offset` фильтр."""
 
     def __init__(self, offset: Data):
         self._offset = offset
@@ -146,7 +146,7 @@ class OffsetFilter(FlowFilter):
 
 # --------        others        --------
 class DeviationFilter(FlowFilter):
-    """Calculate a deviation of the `data`."""
+    """Расчет стандартного отклонения фильтр."""
 
     def __init__(self, units: Units, adc: ADC | None = None, detector: Detector | None = None):
         self.units = units
