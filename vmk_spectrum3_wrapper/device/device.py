@@ -5,9 +5,12 @@ from typing import Mapping
 
 import pyspectrum3 as ps3
 
-from vmk_spectrum3_wrapper.data import Data
-from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, ReadConfig, ReadMode
+from vmk_spectrum3_wrapper.data import Data, DataMeta
+from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
+from vmk_spectrum3_wrapper.measurement.measurement import Measurement, fetch_measurement
+from vmk_spectrum3_wrapper.measurement.schema import ExtendedSchema, Schema, StandardSchema
+from vmk_spectrum3_wrapper.filter import Filter
 from vmk_spectrum3_wrapper.storage import FlowStorage
 from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond
 
@@ -58,11 +61,7 @@ class Device:
     def status(self) -> Mapping[IP, ps3.AssemblyStatus] | None:
         return self._status
 
-    @property
-    def storage(self) -> FlowStorage | None:
-        return self._storage
-
-    # --------        filters        --------
+    # --------        handler        --------
     def connect(self) -> 'Device':
         """Connect to device."""
         message = 'Device is not ready to connect!'
@@ -111,19 +110,14 @@ class Device:
 
         return self
 
-    def setup(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int] = 1, storage: FlowStorage | None = None) -> 'Device':
+    def setup(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int] = 1, handler: Filter | None = None) -> 'Device':
         """Setup device to read."""
         message = 'Device is not ready to setup!'
-        config = ReadConfig(
-            exposure=exposure,
-            capacity=capacity,
-        )
 
-        # setup storage
-        self._storage = storage or FlowStorage()
-        self._storage.setup(
+        self._measurement = fetch_measurement(
             exposure=exposure,
             capacity=capacity,
+            handler=handler,
         )
 
         # pass checks
@@ -131,28 +125,27 @@ class Device:
             self._check_connection()
             self._check_status(ps3.AssemblyStatus.ALIVE)
 
-            if config == self._read_config:
-                raise SetupDeviceError(f'The same read config: {self._read_config} ms!')
-
         except DeviceError as error:
             eprint(message=message, error=error)
             return self
 
         # setup device
-        try:
-            if config.mode == ReadMode.standart:
-                self.device.set_exposure(*config)
+        schema = self._measurement.schema
 
-            if config.mode == ReadMode.extended:
-                self.device.set_double_exposure(*config)
+        print(*schema)
+
+        try:
+            if isinstance(schema, StandardSchema):
+                self.device.set_exposure(*schema)
+            if isinstance(schema, ExtendedSchema):
+                self.device.set_double_exposure(*schema)
 
         except ps3.DriverException as error:
             eprint(message=message, error=error)
             return self
 
         else:
-            self._wait_set_exposure(config.duration)
-            self._read_config = config
+            self._wait_set_exposure(schema.duration_total)
 
             if self.verbose:
                 message = f'Setup config: {self._read_config}'
@@ -167,7 +160,7 @@ class Device:
         try:
             self._check_connection()
             self._check_status(ps3.AssemblyStatus.ALIVE)
-            self._check_read_config()
+            self._check_measurement()
 
         except DeviceError as error:
             eprint(
@@ -176,17 +169,31 @@ class Device:
             )
             return None
 
+        # setup measurement
+        self._measurement.setup(n_iters)
+
         # read data
-        n_frames = n_iters * self._read_config.n_frames
+        n_frames = self._measurement.capacity_total
+
         self.device.read(n_frames)
         self._wait_read()
 
         # block
         if blocking:
-            while len(self.storage) < n_iters:
+            while self._measurement.progress < 1:
                 time.sleep(1e-3*timeout)
 
-            return Data.squeeze(self.storage.pull())
+            storage = self._measurement.storage
+
+            return Data(
+                storage.pull(),
+                meta=DataMeta(
+                    exposure=storage.exposure,
+                    capacity=storage.capacity,
+                    started_at=storage.started_at,
+                    finished_at=storage.finished_at,
+                ),
+            )
 
     def is_status(self, __status: ps3.AssemblyStatus | Sequence[ps3.AssemblyStatus]) -> bool:
 
@@ -209,7 +216,7 @@ class Device:
 
     # --------        callbacks        --------
     def _on_frame(self, frame: Array[int]) -> None:
-        self.storage.put(frame)
+        self._measurement.put(frame)
 
         # verbose
         if self.verbose:
@@ -255,9 +262,9 @@ class Device:
             )
             raise StatusDeviceError(message)
 
-    def _check_read_config(self) -> None:
+    def _check_measurement(self) -> None:
 
-        if self._read_config is None:
+        if self._measurement is None:
             raise SetupDeviceError('Setup a device before!')
 
     # --------        private        --------
