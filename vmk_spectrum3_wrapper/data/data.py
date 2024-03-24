@@ -1,3 +1,4 @@
+import pickle
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
@@ -166,16 +167,14 @@ class Datum(BaseData):
 
 class Data(BaseData):
 
-    def __init__(self, __data: Sequence[Datum], meta: DataMeta):
-        super().__init__(
-            intensity=collapse([datum.intensity for datum in __data]),
-            units=__data[0].units,
-            clipped=collapse([datum.clipped for datum in __data]),
-            deviation=collapse([datum.deviation for datum in __data]),
-            meta=meta,
-        )
+    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: DataMeta | None = None):
+        super().__init__(intensity=intensity, units=units, clipped=clipped, deviation=deviation, meta=meta)
 
     # --------        handler        --------
+    def save(self, filepath: str | None = None) -> None:
+        with open(filepath, 'bw') as file:
+            pickle.dump(self, file)
+
     def show(self) -> None:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
@@ -205,3 +204,21 @@ class Data(BaseData):
             }[self.units],
         ))
         plt.show()
+
+    # --------        fabric        --------
+    @classmethod
+    def load(cls, filepath: str) -> 'Data':
+        with open(filepath, 'br') as file:
+            data = pickle.load(file)
+
+        return data
+
+    @classmethod
+    def squeeze(cls, __items: Sequence[Datum], meta: DataMeta) -> 'Data':
+        return cls(
+            intensity=collapse([item.intensity for item in __items]),
+            units=__items[0].units,
+            clipped=collapse([item.clipped for item in __items]),
+            deviation=collapse([item.deviation for item in __items]),
+            meta=meta,
+        )

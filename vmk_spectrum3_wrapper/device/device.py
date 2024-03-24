@@ -8,10 +8,9 @@ import pyspectrum3 as ps3
 from vmk_spectrum3_wrapper.data import Data, DataMeta
 from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
-from vmk_spectrum3_wrapper.measurement.measurement import Measurement, fetch_measurement
-from vmk_spectrum3_wrapper.measurement.schema import ExtendedSchema, Schema, StandardSchema
+from vmk_spectrum3_wrapper.measurement.measurement import fetch_measurement
+from vmk_spectrum3_wrapper.measurement.schema import ExtendedSchema, StandardSchema
 from vmk_spectrum3_wrapper.filter import Filter
-from vmk_spectrum3_wrapper.storage import FlowStorage
 from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond
 
 
@@ -132,8 +131,6 @@ class Device:
         # setup device
         schema = self._measurement.schema
 
-        print(*schema)
-
         try:
             if isinstance(schema, StandardSchema):
                 self.device.set_exposure(*schema)
@@ -185,9 +182,9 @@ class Device:
 
             storage = self._measurement.storage
 
-            return Data(
+            return Data.squeeze(
                 storage.pull(),
-                meta=DataMeta(
+                DataMeta(
                     exposure=storage.exposure,
                     capacity=storage.capacity,
                     started_at=storage.started_at,
