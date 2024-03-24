@@ -5,41 +5,14 @@ from typing import overload
 import matplotlib.pyplot as plt
 import numpy as np
 
-from vmk_spectrum3_wrapper.data.meta import Meta
+from vmk_spectrum3_wrapper.data.meta import DataMeta
 from vmk_spectrum3_wrapper.typing import Array, U
 from vmk_spectrum3_wrapper.units import Units
 
 
-@overload
-def reshape(values: Array[U]) -> Array[U]: ...
-@overload
-def reshape(values: None) -> None: ...
-def reshape(values):
-
-    if values is None:
-        return None
-    if (values.ndim == 2) and (values.shape[0] == 1):
-        return values.flatten()
-
-    return values
-
-
-@overload
-def crop(values: Array[U]) -> Array[U]: ...
-@overload
-def crop(values: Array[bool]) -> Array[bool]: ...
-@overload
-def crop(values: None) -> None: ...
-def crop(value, index):
-    if value is None:
-        return None
-
-    return value[index, :]
-
-
 class BaseData(ABC):
 
-    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: Meta | None = None):
+    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: DataMeta | None = None):
         self.intensity = intensity
         self.units = units
         self.clipped = clipped
@@ -66,7 +39,7 @@ class BaseData(ABC):
     def number(self) -> Array[int]:
         return np.arange(self.n_numbers)
 
-    # --------        filters        --------
+    # --------        handler        --------
     @abstractmethod
     def show(self) -> None:
         raise NotImplementedError
@@ -161,10 +134,10 @@ class BaseData(ABC):
 
 class Datum(BaseData):
 
-    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: Meta | None = None):
-        super().__init__(intensity=intensity, units=units, clipped=clipped, deviation=deviation, meta=meta)
+    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None):
+        super().__init__(intensity=intensity, units=units, clipped=clipped, deviation=deviation)
 
-    # --------        filters        --------
+    # --------        handler        --------
     def show(self) -> None:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
@@ -192,33 +165,16 @@ class Datum(BaseData):
 
 class Data(BaseData):
 
-    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: Meta | None = None):
-        super().__init__(intensity=intensity, units=units, clipped=clipped, deviation=deviation, meta=meta)
-
-    # --------        filters        --------
-    @classmethod
-    def squeeze(cls, data: Sequence[Datum]) -> 'Data':
-
-        def collapse(data: Sequence[Datum], name: str) -> Array | None:
-            try:
-                return np.array([getattr(datum, name) for datum in data])
-
-            except AttributeError:
-                return None
-
-        return cls(
-            intensity=np.array([datum.intensity for datum in data]),
-            units=data[0].units,
-            clipped=collapse(data, name='clipped'),
-            deviation=collapse(data, name='deviation'),
-            meta=Meta(
-                capacity=data[0].meta.capacity,
-                exposure=data[0].meta.exposure,
-                started_at=data[0].meta.finished_at,
-                finished_at=data[-1].meta.finished_at,
-            ),
+    def __init__(self, __data: Sequence[Datum], meta: DataMeta):
+        super().__init__(
+            intensity=collapse([datum.intensity for datum in __data]),
+            units=__data[0].units,
+            clipped=collapse([datum.clipped for datum in __data]),
+            deviation=collapse([datum.deviation for datum in __data]),
+            meta=meta,
         )
 
+    # --------        handler        --------
     def show(self) -> None:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
@@ -248,3 +204,42 @@ class Data(BaseData):
             }[self.units],
         ))
         plt.show()
+
+
+# --------        utils        --------
+@overload
+def reshape(value: Array[U]) -> Array[U]: ...
+@overload
+def reshape(value: None) -> None: ...
+def reshape(value):
+
+    if value is None:
+        return None
+    if (value.ndim == 2) and (value.shape[0] == 1):
+        return value.flatten()
+
+    return value
+
+
+@overload
+def crop(value: Array[U], index: Array[int]) -> Array[U]: ...
+@overload
+def crop(value: Array[bool], index: Array[int]) -> Array[bool]: ...
+@overload
+def crop(value: None, index: Array[int]) -> None: ...
+def crop(value, index):
+    if value is None:
+        return None
+
+    return value[index, :]
+
+
+@overload
+def collapse(values: Sequence[Array[U]]) -> Array[U]: ...
+@overload
+def collapse(values: Sequence[Array[bool]]) -> Array[bool]: ...
+def collapse(values):
+    if values[0] is None:
+        return None
+
+    return np.array(values)
