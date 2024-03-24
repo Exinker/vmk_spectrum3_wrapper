@@ -12,24 +12,39 @@ from vmk_spectrum3_wrapper.units import Units
 
 class Storage:
 
-    def __init__(self, capacity: int | tuple[int, int], handler: PipeFilter | None = None):
+    def __init__(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int], handler: PipeFilter | None = None):
+        self._exposure = exposure
         self._capacity = capacity
         self._handler = handler or IntegrationFilterPreset()
 
         self._started_at = None  # время окончания измерения первого кадра
         self._finished_at = None  # время окончания измерения последнего кадра
-
         self._data = []
         self._buffer = []
 
     @property
+    def exposure(self) -> MilliSecond | tuple[MilliSecond, MilliSecond]:
+        """"Время экспозиции для проведения одной схемы измерения."""
+        return self._exposure
+
+    @property
     def capacity(self) -> int | tuple[int, int]:
-        """"Количество кадров для проведения измерения."""
+        """Количество кадров для проведения одной схемы измерения."""
         return self._capacity
 
     @property
     def handler(self) -> PipeFilter:
         return self._handler
+
+    @property
+    def started_at(self) -> MilliSecond | tuple[MilliSecond, MilliSecond]:
+        """"Время окончания первого измерения."""
+        return self._started_at
+
+    @property
+    def finished_at(self) -> MilliSecond | tuple[MilliSecond, MilliSecond]:
+        """"Время окончания последнего измерения."""
+        return self._finished_at
 
     @property
     def buffer(self) -> list[Array[int]]:
@@ -77,7 +92,6 @@ class Storage:
         self._finished_at = time_at
 
         # buffer
-        print('+2')
         self.buffer.append(frame)
 
         # data
@@ -88,7 +102,7 @@ class Storage:
                 intensity=buffer,
                 units=Units.digit,
             )
-            datum = self.handler(datum)
+            datum = self.handler(datum, exposure=self.exposure, capacity=self.capacity)
 
             self.data.append(datum)
 

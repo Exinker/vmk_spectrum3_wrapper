@@ -2,12 +2,10 @@ import time
 from typing import overload
 
 from vmk_spectrum3_wrapper.data import Data
-from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto
-from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
 from vmk_spectrum3_wrapper.filter import Filter
-from vmk_spectrum3_wrapper.measurement.schema import ExtendedSchema, Schema, StandardSchema, fetch_schema
+from vmk_spectrum3_wrapper.measurement.schema import Schema, fetch_schema
 from vmk_spectrum3_wrapper.measurement.storage import Storage
-from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond
+from vmk_spectrum3_wrapper.typing import Array, MilliSecond
 
 
 class Measurement:
@@ -61,7 +59,6 @@ class Measurement:
     def put(self, frame: Array[int]) -> None:
         """Добавить новый `frame` в `storage`."""
 
-        print('+1')
         # time
         time_at = time.perf_counter()
 
@@ -90,5 +87,5 @@ def fetch_measurement(exposure: tuple[MilliSecond, MilliSecond], capacity: tuple
 def fetch_measurement(exposure, capacity, handler):
     return Measurement(
         schema=fetch_schema(exposure, capacity),
-        storage=Storage(capacity, handler),
+        storage=Storage(exposure, capacity, handler),
     )
