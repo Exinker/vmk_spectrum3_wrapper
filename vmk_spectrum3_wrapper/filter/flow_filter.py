@@ -115,10 +115,6 @@ class OffsetFilter(FlowFilter):
     def offset(self) -> Data:
         return self._offset
 
-    @property
-    def units(self) -> Units:
-        return self.offset.units
-
     def kernel(self, value: Array | None, kind: Literal['intensity', 'clipped', 'deviation']) -> Array | None:
         if (value is None):
             return None
@@ -133,7 +129,7 @@ class OffsetFilter(FlowFilter):
 
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
-        assert datum.units == self.units
+        assert datum.units == self.offset.units
         assert datum.n_numbers == self.offset.n_numbers
 
         return Datum(
@@ -149,18 +145,22 @@ class DeviationFilter(FlowFilter):
     """Расчет стандартного отклонения фильтр."""
 
     def __init__(self, units: Units, adc: ADC | None = None, detector: Detector | None = None):
-        self.units = units
-        self.adc = adc or _ADC  # FIXME: remove it!
-        self.detector = detector or _DETECTOR  # FIXME: remove it!
+        self._units = units
+        self._adc = adc or _ADC  # FIXME: remove it!
+        self._detector = detector or _DETECTOR  # FIXME: remove it!
 
         self.noise = Noise(
-            adc=self.adc,
-            detector=self.detector,
+            adc=self._adc,
+            detector=self._detector,
             units=self.units,
             n_frames=1,
         )
 
-    def kernel(self, value: Array[Digit]) -> Array[Digit]:
+    @property
+    def units(self) -> Units:
+        return self._units
+
+    def kernel(self, value: Array[U]) -> Array[U]:
         return self.noise(value)
 
     # --------        private        --------
