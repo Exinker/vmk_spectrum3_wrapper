@@ -3,7 +3,6 @@ from typing import NewType
 
 from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.filter.base_filter import BaseFilter
-from vmk_spectrum3_wrapper.units import Units
 
 
 F = NewType('F', BaseFilter)
