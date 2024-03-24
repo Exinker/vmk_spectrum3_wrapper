@@ -5,7 +5,7 @@ import numpy as np
 from vmk_spectrum3_wrapper.adc import ADC
 from vmk_spectrum3_wrapper.data import Data, Datum
 from vmk_spectrum3_wrapper.detector import Detector
-from vmk_spectrum3_wrapper.device.config import _ADC, _DETECTOR
+from vmk_spectrum3_wrapper.config import _ADC, _DETECTOR
 from vmk_spectrum3_wrapper.filter.base_filter import BaseFilter
 from vmk_spectrum3_wrapper.noise import Noise
 from vmk_spectrum3_wrapper.shuffle import Shuffle

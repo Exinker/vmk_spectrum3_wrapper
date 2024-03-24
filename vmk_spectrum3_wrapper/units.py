@@ -1,6 +1,6 @@
 from enum import Enum
 
-from vmk_spectrum3_wrapper.device.config import _ADC
+from vmk_spectrum3_wrapper.config import _ADC
 from vmk_spectrum3_wrapper.typing import Electron, U
 
 
