@@ -45,7 +45,7 @@ class Units(Enum):
                 raise TypeError(f'Units {self} is not supported yet!')
 
 
-# --------        filters        --------
+# --------        handler        --------
 def to_electron(value: U, units: Units, capacity: Electron) -> Electron:
     """Convert value to electron units."""
 
