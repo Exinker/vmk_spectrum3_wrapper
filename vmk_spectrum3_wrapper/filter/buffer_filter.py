@@ -1,16 +1,17 @@
 import numpy as np
 
-from vmk_spectrum3_wrapper.data import Datum, DataMeta
+from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.filter.base_filter import BaseFilter
 from vmk_spectrum3_wrapper.typing import MilliSecond
 
 
 class BufferFilter(BaseFilter):
-    """Buffer or reduce dimension filters."""
+    """Снижающий размерность фильтр."""
 
 
 # --------        standard integration filters        --------
 class IntegrationFilter(BufferFilter):
+    """Интегральный фильтр."""
 
     def __init__(self, is_averaging: bool = True):
         self.is_averaging = is_averaging
@@ -33,6 +34,7 @@ class IntegrationFilter(BufferFilter):
 
 # --------        high dynamic range (HDR) integration filter        --------
 class HighDynamicRangeIntegrationFilter(BufferFilter):
+    """Интегральный в расширенном динамическом диапазоне фильтр."""
 
     # --------        private        --------
     def __call__(self, datum: Datum, *args, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int], **kwargs) -> Datum:
