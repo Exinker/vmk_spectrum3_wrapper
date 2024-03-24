@@ -49,7 +49,6 @@ class ShuffleFilter(FlowFilter):
             units=datum.units,
             clipped=self.kernel(datum.clipped),
             deviation=self.kernel(datum.deviation),
-            meta=datum.meta,
         )
 
 
@@ -72,7 +71,6 @@ class ClipFilter(FlowFilter):
             units=datum.units,
             clipped=self.kernel(datum.intensity),
             deviation=datum.deviation,
-            meta=datum.meta,
         )
 
 
@@ -102,7 +100,6 @@ class ScaleFilter(FlowFilter):
             units=self.units,
             clipped=datum.clipped,
             deviation=self.kernel(datum.deviation),
-            meta=datum.meta,
         )
 
 
@@ -144,7 +141,6 @@ class OffsetFilter(FlowFilter):
             units=datum.units,
             clipped=self.kernel(datum.clipped, kind='clipped'),
             deviation=self.kernel(datum.deviation, kind='deviation'),
-            meta=datum.meta,
         )
 
 
@@ -176,5 +172,4 @@ class DeviationFilter(FlowFilter):
             units=datum.units,
             clipped=datum.clipped,
             deviation=self.kernel(datum.intensity),
-            meta=datum.meta,
         )

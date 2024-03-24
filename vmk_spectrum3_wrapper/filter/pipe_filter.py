@@ -24,9 +24,10 @@ class PipeFilter(BaseFilter):
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
 
-        for item in self.filters:
+        for handler in self.filters:
+            # print(type(handler), handler)
             try:
-                datum = item(datum, *args, **kwargs)
+                datum = handler(datum, *args, **kwargs)
             except Exception as error:
                 print(error)
 

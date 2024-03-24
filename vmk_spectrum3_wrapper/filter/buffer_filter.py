@@ -1,7 +1,8 @@
 import numpy as np
 
-from vmk_spectrum3_wrapper.data import Datum, Meta
+from vmk_spectrum3_wrapper.data import Datum, DataMeta
 from vmk_spectrum3_wrapper.filter.base_filter import BaseFilter
+from vmk_spectrum3_wrapper.typing import MilliSecond
 
 
 class BufferFilter(BaseFilter):
@@ -27,12 +28,6 @@ class IntegrationFilter(BufferFilter):
             units=datum.units,
             clipped=clipped,
             deviation=deviation,
-            meta=Meta(
-                capacity=datum.n_times,
-                exposure=datum.meta.exposure,
-                started_at=datum.meta.started_at,
-                finished_at=datum.meta.finished_at,
-            ),
         )
 
 
@@ -40,7 +35,7 @@ class IntegrationFilter(BufferFilter):
 class HighDynamicRangeIntegrationFilter(BufferFilter):
 
     # --------        private        --------
-    def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
+    def __call__(self, datum: Datum, *args, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int], **kwargs) -> Datum:
         # assert datum.n_times > 1, 'Buffered datum are supported only!'
         # assert isinstance(datum.capacity, tuple), ''  # FIXME: add custom assertion!
         import pickle
@@ -63,7 +58,7 @@ class HighDynamicRangeIntegrationFilter(BufferFilter):
         #     intensity=np.nanmean([lelic, bolic], axis=0),
         #     units=datum.units,
         #     clipped=np.max(datum.clipped, axis=0),  # FIXME: calculate clipped!
-        #     meta=Meta(
+        #     meta=DataMeta(
         #         capacity=datum.n_times,
         #         exposure=datum.meta.exposure,
         #         started_at=datum.meta.started_at,
