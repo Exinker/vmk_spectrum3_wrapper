@@ -1,11 +1,12 @@
-from typing import Literal
+from abc import abstractmethod
+from typing import Any, Literal
 
 import numpy as np
 
 from vmk_spectrum3_wrapper.adc import ADC
+from vmk_spectrum3_wrapper.config import _ADC, _DETECTOR
 from vmk_spectrum3_wrapper.data import Data, Datum
 from vmk_spectrum3_wrapper.detector import Detector
-from vmk_spectrum3_wrapper.config import _ADC, _DETECTOR
 from vmk_spectrum3_wrapper.filter.base_filter import BaseFilter
 from vmk_spectrum3_wrapper.noise import Noise
 from vmk_spectrum3_wrapper.shuffle import Shuffle
@@ -14,11 +15,11 @@ from vmk_spectrum3_wrapper.units import Units
 
 
 class FlowFilter(BaseFilter):
-    """One frame or not reduce dimension filters."""
+    """Not reduce dimension filters."""
 
-    # @abstractmethod
-    # def kernel(self, value: Array[U] | None) -> Array[Any] | None:
-    #     raise NotImplementedError
+    @abstractmethod
+    def kernel(self, value: Array[U] | None) -> Array[Any] | None:
+        raise NotImplementedError
 
 
 # --------        core filters        --------
@@ -108,7 +109,6 @@ class OffsetFilter(FlowFilter):
     """Calibrate `data` by offset intensity."""
 
     def __init__(self, offset: Data):
-        assert offset.n_times == 1, 'Only 1d `datum` are supported!'
         self._offset = offset
 
     @property
