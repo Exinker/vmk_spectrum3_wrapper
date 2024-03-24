@@ -1,4 +1,3 @@
-import pickle
 from collections.abc import Sequence
 
 import matplotlib.pyplot as plt
@@ -8,7 +7,6 @@ from tqdm import tqdm
 from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.device import Device
 from vmk_spectrum3_wrapper.filter import IntegrationFilterPreset
-from vmk_spectrum3_wrapper.storage import BufferStorage
 from vmk_spectrum3_wrapper.typing import MilliSecond
 from vmk_spectrum3_wrapper.units import Units
 
@@ -27,11 +25,9 @@ def calibrate_dark(
     device = device.setup(
         exposure=exposure,
         capacity=capacity,
-        storage=BufferStorage(
-            handler=IntegrationFilterPreset(
-                units=units,
-                bias=bias,
-            ),
+        handler=IntegrationFilterPreset(
+            units=units,
+            bias=bias,
         ),
     )
     dark = device.read(1)
@@ -42,8 +38,7 @@ def calibrate_dark(
 
     # save
     if save:
-        with open('dark.pkl', 'bw') as file:
-            pickle.dump(dark, file)
+        dark.save('dark.pkl')
 
     #
     return dark
@@ -64,10 +59,8 @@ def calibrate_bias(
         device = device.setup(
             exposure=tau.item(),
             capacity=capacity,
-            storage=BufferStorage(
-                handler=IntegrationFilterPreset(
-                    units=units,
-                ),
+            handler=IntegrationFilterPreset(
+                units=units,
             ),
         )
         datum = device.read(1)
@@ -117,8 +110,7 @@ def calibrate_bias(
 
     # save
     if save:
-        with open('bias.pkl', 'bw') as file:
-            pickle.dump(bias, file)
+        bias.save('bias.pkl')
 
     #
     return bias
