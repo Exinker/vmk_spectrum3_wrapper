@@ -56,8 +56,8 @@ class HighDynamicRangeIntegrationFilterPreset(PipeFilter):
     ):
         super().__init__(filters=[
             SwitchFilter([
-                IntegrationFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark),
-                IntegrationFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark),
-            ]),  # TODO: подсовывать правильный темновой сигнал!
+                IntegrationFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark[0, :]),
+                IntegrationFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark[1, :]),
+            ]),
             HighDynamicRangeIntegrationFilter(),
         ])
