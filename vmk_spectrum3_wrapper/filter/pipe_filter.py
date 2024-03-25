@@ -1,11 +1,9 @@
 from collections.abc import Sequence
-from typing import NewType
 
 from vmk_spectrum3_wrapper.data import Datum
-from vmk_spectrum3_wrapper.filter.base_filter import BaseFilter
 
-
-F = NewType('F', BaseFilter)
+from .base_filter import BaseFilter
+from .typing import F
 
 
 class PipeFilter(BaseFilter):

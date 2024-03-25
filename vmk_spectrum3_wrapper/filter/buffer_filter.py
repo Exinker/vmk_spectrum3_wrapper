@@ -1,8 +1,9 @@
 import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum
-from vmk_spectrum3_wrapper.filter.base_filter import BaseFilter
 from vmk_spectrum3_wrapper.typing import MilliSecond
+
+from .base_filter import BaseFilter
 
 
 class BufferFilter(BaseFilter):
