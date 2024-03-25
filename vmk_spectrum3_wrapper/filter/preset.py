@@ -1,9 +1,11 @@
 from vmk_spectrum3_wrapper.data import Data
-from vmk_spectrum3_wrapper.filter.buffer_filter import IntegrationFilter
-from vmk_spectrum3_wrapper.filter.flow_filter import ClipFilter, DeviationFilter, OffsetFilter, ScaleFilter, ShuffleFilter
-from vmk_spectrum3_wrapper.filter.pipe_filter import PipeFilter
 from vmk_spectrum3_wrapper.shuffle import Shuffle
 from vmk_spectrum3_wrapper.units import Units
+
+from .buffer_filter import HighDynamicRangeIntegrationFilter, IntegrationFilter
+from .flow_filter import ClipFilter, DeviationFilter, OffsetFilter, ScaleFilter, ShuffleFilter
+from .pipe_filter import PipeFilter
+from .switch_filter import SwitchFilter
 
 
 class CoreFilterPreset(PipeFilter):
@@ -40,4 +42,22 @@ class IntegrationFilterPreset(PipeFilter):
         super().__init__(filters=[
             CoreFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark),
             IntegrationFilter(is_averaging=is_averaging),
+        ])
+
+
+class HighDynamicRangeIntegrationFilterPreset(PipeFilter):
+
+    def __init__(
+        self,
+        shuffle: Shuffle | None = None,
+        units: Units | None = None,
+        bias: Data | None = None,
+        dark: Data | None = None,
+    ):
+        super().__init__(filters=[
+            SwitchFilter([
+                IntegrationFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark),
+                IntegrationFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark),
+            ]),  # TODO: подсовывать правильный темновой сигнал!
+            HighDynamicRangeIntegrationFilter(),
         ])
