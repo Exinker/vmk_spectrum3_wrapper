@@ -10,9 +10,6 @@ from vmk_spectrum3_wrapper.typing import MicroSecond, MilliSecond
 
 
 def to_microsecond(__exposure: MilliSecond) -> MicroSecond:
-    if __exposure < 0:
-        raise SetupDeviceError('Время экспозиции должно быть положительным!')
-
     value = int(np.round(1000 * __exposure).astype(int))
     if value % 100 > 0:
         raise SetupDeviceError('Время экспозиции должно быть кратном 100 мкс!')
@@ -49,8 +46,16 @@ class StandardSchema(BaseSchema):
     capacity: int
 
     def __post_init__(self):
-        assert isinstance(self.exposure, (int, float))
-        assert isinstance(self.capacity, int)
+
+        if not isinstance(self.exposure, (int, float)):
+            raise SetupDeviceError('Время экспозиции должно быть числом!')
+        if not self.exposure > 0:
+            raise SetupDeviceError('Время экспозиции должно быть положительным числом!')
+
+        if not isinstance(self.capacity, int):
+            raise SetupDeviceError('Количество накоплений должно быть целым числом!')
+        if not (self.capacity > 0 and self.capacity < 2**24):
+            raise SetupDeviceError('Количество накоплений должно быть числом с диапазоне [1; 2**24 - 1]!')
 
     @property
     def duration_total(self) -> MilliSecond:
