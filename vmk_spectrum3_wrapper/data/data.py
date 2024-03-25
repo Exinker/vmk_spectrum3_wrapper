@@ -1,6 +1,7 @@
 import pickle
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from typing import overload
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +10,7 @@ from vmk_spectrum3_wrapper.typing import Array, U
 from vmk_spectrum3_wrapper.units import Units
 
 from .meta import DataMeta
-from .utils import collapse, crop
+from .utils import crop, join, reshape
 
 
 class BaseData(ABC):
@@ -47,18 +48,6 @@ class BaseData(ABC):
         raise NotImplementedError
 
     # --------        private        --------
-    def __getitem__(self, index: int | slice) -> 'BaseData':
-        assert self.n_times > 1, 'Only 2d data is supported!'
-
-        cls = self.__class__
-        return cls(
-            intensity=crop(self.intensity, index),
-            units=self.units,
-            clipped=crop(self.clipped, index),
-            deviation=crop(self.deviation, index),
-            meta=self.meta,
-        )
-
     # def __add__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
     #     cls = self.__class__
 
@@ -137,26 +126,31 @@ class BaseData(ABC):
 class Datum(BaseData):
 
     def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None):
-        super().__init__(intensity=intensity, units=units, clipped=clipped, deviation=deviation)
+        super().__init__(
+            intensity=reshape(intensity),
+            units=units,
+            clipped=reshape(clipped),
+            deviation=reshape(deviation),
+        )
 
     # --------        handler        --------
     def show(self) -> None:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        # intensity
-        plt.step(
-            self.number, self.intensity,
-            where='mid',
-            color='black', linestyle='-', linewidth=1,
-        )
-
-        # mask
-        if self.clipped is not None:
-            mask = self.clipped
-            plt.plot(
-                self.number[mask], self.intensity[mask],
-                color='red', linestyle='none', marker='.', markersize=.5,
+        color = 'black' if self.n_times == 1 else None
+        for t in range(self.n_times):
+            plt.step(
+                self.number, self.intensity[t, :],
+                where='mid',
+                color=color, linestyle='-', linewidth=1,
             )
+
+            if self.clipped is not None:
+                mask = self.clipped[t, :]
+                plt.plot(
+                    self.number[mask], self.intensity[t, mask],
+                    color='red', linestyle='none', marker='.', markersize=2,
+                )
 
         #
         plt.xlabel('Номер отсчета')
@@ -164,11 +158,29 @@ class Datum(BaseData):
 
         plt.show()
 
+    # --------        private        --------
+    def __getitem__(self, index: tuple[int | Array[int] | slice, int | Array[int] | slice]) -> 'BaseData':
+        """Итерировать по `index` вдоль времени и пространству."""
+        cls = self.__class__
+
+        return cls(
+            intensity=crop(self.intensity, index),
+            units=self.units,
+            clipped=crop(self.clipped, index),
+            deviation=crop(self.deviation, index),
+        )
+
 
 class Data(BaseData):
 
     def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: DataMeta | None = None):
-        super().__init__(intensity=intensity, units=units, clipped=clipped, deviation=deviation, meta=meta)
+        super().__init__(
+            intensity=reshape(intensity),
+            units=units,
+            clipped=reshape(clipped),
+            deviation=reshape(deviation),
+            meta=meta,
+        )
 
     # --------        handler        --------
     def save(self, filepath: str | None = None) -> None:
@@ -178,21 +190,20 @@ class Data(BaseData):
     def show(self) -> None:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
-        # intensity
-        intensity = np.mean(self.intensity, axis=0)
-        plt.step(
-            self.number, intensity,
-            where='mid',
-            color='black', linestyle='-', linewidth=1,
-        )
-
-        # mask
-        if self.clipped is not None:
-            mask = np.max(self.clipped, axis=0)
-            plt.plot(
-                self.number[mask], intensity[mask],
-                color='red', linestyle='none', marker='.', markersize=.5,
+        color = 'black' if self.n_times == 1 else None
+        for t in range(self.n_times):
+            plt.step(
+                self.number, self.intensity[t, :],
+                where='mid',
+                color=color, linestyle='-', linewidth=1,
             )
+
+            if self.clipped is not None:
+                mask = self.clipped[t, :]
+                plt.plot(
+                    self.number[mask], self.intensity[t, mask],
+                    color='red', linestyle='none', marker='.', markersize=2,
+                )
 
         #
         plt.xlabel(r'Номер отсчета')
@@ -215,10 +226,26 @@ class Data(BaseData):
 
     @classmethod
     def squeeze(cls, __items: Sequence[Datum], meta: DataMeta) -> 'Data':
+        for i, item in enumerate(__items):
+            print(f'{i}: {item.intensity.shape}')
+
         return cls(
-            intensity=collapse([item.intensity for item in __items]),
+            intensity=join([item.intensity for item in __items]),
             units=__items[0].units,
-            clipped=collapse([item.clipped for item in __items]),
-            deviation=collapse([item.deviation for item in __items]),
+            clipped=join([item.clipped for item in __items]),
+            deviation=join([item.deviation for item in __items]),
             meta=meta,
+        )
+
+    # --------        private        --------
+    def __getitem__(self, index: tuple[int | Array[int] | slice, int | Array[int] | slice]) -> 'BaseData':
+        """Итерировать по `index` вдоль времени и пространству."""
+        cls = self.__class__
+
+        return cls(
+            intensity=crop(self.intensity, index),
+            units=self.units,
+            clipped=crop(self.clipped, index),
+            deviation=crop(self.deviation, index),
+            meta=self.meta,
         )
