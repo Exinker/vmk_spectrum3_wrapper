@@ -5,15 +5,17 @@ from typing import Iterator, TypeAlias, overload
 
 import numpy as np
 
+from vmk_spectrum3_wrapper.exception import SetupDeviceError
 from vmk_spectrum3_wrapper.typing import MicroSecond, MilliSecond
 
 
 def to_microsecond(__exposure: MilliSecond) -> MicroSecond:
-    value = int(np.round(1000 * __exposure).astype(int))
+    if __exposure < 0:
+        raise SetupDeviceError('Время экспозиции должно быть положительным!')
 
-    assert value % 100 == 0, 'Invalid exposure: {value} mks!'.format(
-        value=value,
-    )
+    value = int(np.round(1000 * __exposure).astype(int))
+    if value % 100 > 0:
+        raise SetupDeviceError('Время экспозиции должно быть кратном 100 мкс!')
 
     return value
 
