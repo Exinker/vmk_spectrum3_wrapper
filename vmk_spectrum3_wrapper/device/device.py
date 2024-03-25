@@ -10,7 +10,7 @@ from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
 from vmk_spectrum3_wrapper.measurement.measurement import fetch_measurement
 from vmk_spectrum3_wrapper.measurement.schema import ExtendedSchema, StandardSchema
-from vmk_spectrum3_wrapper.filter import Filter
+from vmk_spectrum3_wrapper.filter import F
 from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond
 
 
@@ -109,7 +109,7 @@ class Device:
 
         return self
 
-    def setup(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int] = 1, handler: Filter | None = None) -> 'Device':
+    def setup(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int] = 1, handler: F | None = None) -> 'Device':
         """Setup device to read."""
         message = 'Device is not ready to setup!'
 

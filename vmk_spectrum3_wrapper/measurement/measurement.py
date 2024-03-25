@@ -2,10 +2,11 @@ import time
 from typing import overload
 
 from vmk_spectrum3_wrapper.data import Data
-from vmk_spectrum3_wrapper.filter import Filter
-from vmk_spectrum3_wrapper.measurement.schema import Schema, fetch_schema
-from vmk_spectrum3_wrapper.measurement.storage import Storage
+from vmk_spectrum3_wrapper.filter import F
 from vmk_spectrum3_wrapper.typing import Array, MilliSecond
+
+from .schema import Schema, fetch_schema
+from .storage import Storage
 
 
 class Measurement:
@@ -81,9 +82,9 @@ class Measurement:
 
 # --------        factory        --------
 @overload
-def fetch_measurement(exposure: MilliSecond, capacity: int, handler: Filter | None = None) -> Measurement: ...
+def fetch_measurement(exposure: MilliSecond, capacity: int, handler: F | None = None) -> Measurement: ...
 @overload
-def fetch_measurement(exposure: tuple[MilliSecond, MilliSecond], capacity: tuple[int, int], handler: Filter | None = None) -> Measurement: ...
+def fetch_measurement(exposure: tuple[MilliSecond, MilliSecond], capacity: tuple[int, int], handler: F | None = None) -> Measurement: ...
 def fetch_measurement(exposure, capacity, handler):
     return Measurement(
         schema=fetch_schema(exposure, capacity),
