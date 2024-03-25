@@ -1,3 +1,5 @@
+import pickle
+
 import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum
@@ -38,33 +40,22 @@ class HighDynamicRangeIntegrationFilter(BufferFilter):
     """Интегральный в расширенном динамическом диапазоне фильтр."""
 
     # --------        private        --------
-    def __call__(self, datum: Datum, *args, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int], **kwargs) -> Datum:
-        # assert datum.n_times > 1, 'Buffered datum are supported only!'
-        # assert isinstance(datum.capacity, tuple), ''  # FIXME: add custom assertion!
-        import pickle
+    def __call__(self, datum: Datum, *args, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int], save: bool = True, **kwargs) -> Datum:
+        assert datum.n_times == 2
 
-        with open('datum.pkl', 'wb') as file:
-            pickle.dump(datum, file)
+        if save:
+            with open('spam.pkl', 'wb') as file:
+                pickle.dump(datum, file)
 
-        return datum
+        #
+        lelic, bolic = [
+            datum.intensity[i, :] * (max(exposure)/exposure[i])
+            for i in range(datum.n_times)
+        ]
 
-        # intensity = datum.intensity.copy()
-        # intensity[datum.clipped] = np.nan
-
-        # t1, t2 = datum.meta.exposure
-        # n1, n2 = datum.meta.capacity
-
-        # lelic = np.mean(intensity[:n1, :], axis=0) * (max(t1, t2)/t1)
-        # bolic = np.mean(intensity[-n2:, :], axis=0) * (max(t1, t2)/t2)
-
-        # return Datum(
-        #     intensity=np.nanmean([lelic, bolic], axis=0),
-        #     units=datum.units,
-        #     clipped=np.max(datum.clipped, axis=0),  # FIXME: calculate clipped!
-        #     meta=DataMeta(
-        #         capacity=datum.n_times,
-        #         exposure=datum.meta.exposure,
-        #         started_at=datum.meta.started_at,
-        #         finished_at=datum.meta.finished_at,
-        #     ),
-        # )
+        #
+        return Datum(
+            intensity=np.nanmean([lelic, bolic], axis=0),
+            units=datum.units,
+            clipped=np.min(datum.clipped, axis=0),
+        )
