@@ -1,5 +1,6 @@
 import itertools
 from abc import ABC, abstractmethod, abstractproperty
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Iterator, TypeAlias, overload
 
@@ -63,17 +64,17 @@ class StandardSchema(BaseSchema):
 
 @dataclass(frozen=True)
 class ExtendedSchema(BaseSchema):
-    exposure: tuple[MilliSecond, MilliSecond]
-    capacity: tuple[int, int]
+    exposure: Sequence[MilliSecond, MilliSecond]
+    capacity: Sequence[int, int]
 
     def __post_init__(self):
 
-        if not isinstance(self.exposure, tuple):
-            raise SetupDeviceError('Время экспозиции должно быть кортежем!')
-        if not isinstance(self.capacity, tuple):
-            raise SetupDeviceError('Количество накоплений должно быть кортежем!')
+        if not isinstance(self.exposure, Sequence):
+            raise SetupDeviceError('Время экспозиции должно быть последовательснотью: Sequence[MilliSecond, MilliSecond]!')
+        if not isinstance(self.capacity, Sequence):
+            raise SetupDeviceError('Количество накоплений должно быть последовательснотью: Sequence[int, int]!')
         if not len(self.exposure) == len(self.capacity):
-            raise SetupDeviceError('Длина кортежей должна совпадать!')
+            raise SetupDeviceError('Длина последовательностей должна совпадать!')
 
         for exposure, capacity in zip(self.exposure, self.capacity):
             validate_exposure(exposure)
@@ -113,13 +114,13 @@ Schema: TypeAlias = StandardSchema | ExtendedSchema
 @overload
 def fetch_schema(exposure: MilliSecond, capacity: int) -> StandardSchema: ...
 @overload
-def fetch_schema(exposure: tuple[MilliSecond, MilliSecond], capacity: tuple[int, int]) -> ExtendedSchema: ...
+def fetch_schema(exposure: Sequence[MilliSecond, MilliSecond], capacity: Sequence[int, int]) -> ExtendedSchema: ...
 def fetch_schema(exposure, capacity):
 
     if isinstance(exposure, (int, float)):
         return StandardSchema(exposure, capacity)
 
-    if isinstance(exposure, tuple):
+    if isinstance(exposure, Sequence):
         return ExtendedSchema(exposure, capacity)
 
     raise ValueError
