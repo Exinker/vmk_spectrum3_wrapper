@@ -34,14 +34,12 @@ def test_schema_unpacking(schema: ExtendedSchema):
 @pytest.mark.parametrize(
     ['exposure', 'capacity', 'expected'],
     [
-        ('1', 1, SetupDeviceError),
-        (0, 1, SetupDeviceError),
-        (1, 1., SetupDeviceError),
-        (1, 0, SetupDeviceError),
-        (1, 2**24, SetupDeviceError),
+        (1, (100, 1), SetupDeviceError),
+        ((1, 100), 1, SetupDeviceError),
+        ((1, ), (100, 1), SetupDeviceError),
+        ((1, 100), (100, ), SetupDeviceError),
     ],
 )
 def test_schema_fail(exposure: MilliSecond, capacity: int, expected: SetupDeviceError):
-
     with pytest.raises(expected):
         ExtendedSchema(exposure, capacity)
