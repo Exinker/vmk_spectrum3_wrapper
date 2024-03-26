@@ -28,20 +28,20 @@ def test_schema_unpacking(schema: ExtendedSchema):
     assert [*schema] == [
         to_microsecond(schema.exposure[1]), schema.capacity[1],
         to_microsecond(schema.exposure[0]), schema.capacity[0],
-    ]
+    ]  # TODO: items are reversed for compatibility with `Atom`
 
 
-# @pytest.mark.parametrize(
-#     ['exposure', 'capacity', 'expected'],
-#     [
-#         ('1', 1, SetupDeviceError),
-#         (0, 1, SetupDeviceError),
-#         (1, 1., SetupDeviceError),
-#         (1, 0, SetupDeviceError),
-#         (1, 2**24, SetupDeviceError),
-#     ],
-# )
-# def test_schema_fail(exposure: MilliSecond, capacity: int, expected: SetupDeviceError):
+@pytest.mark.parametrize(
+    ['exposure', 'capacity', 'expected'],
+    [
+        ('1', 1, SetupDeviceError),
+        (0, 1, SetupDeviceError),
+        (1, 1., SetupDeviceError),
+        (1, 0, SetupDeviceError),
+        (1, 2**24, SetupDeviceError),
+    ],
+)
+def test_schema_fail(exposure: MilliSecond, capacity: int, expected: SetupDeviceError):
 
-#     with pytest.raises(expected):
-#         ExtendedSchema(exposure, capacity)
+    with pytest.raises(expected):
+        ExtendedSchema(exposure, capacity)

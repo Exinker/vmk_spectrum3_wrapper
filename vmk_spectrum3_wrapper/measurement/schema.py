@@ -9,14 +9,6 @@ from vmk_spectrum3_wrapper.exception import SetupDeviceError
 from vmk_spectrum3_wrapper.typing import MicroSecond, MilliSecond
 
 
-def to_microsecond(__exposure: MilliSecond) -> MicroSecond:
-    value = int(np.round(1000 * __exposure).astype(int))
-    if value % 100 > 0:
-        raise SetupDeviceError('Время экспозиции должно быть кратном 100 мкс!')
-
-    return value
-
-
 class BaseSchema(ABC):
 
     @abstractproperty
@@ -46,16 +38,8 @@ class StandardSchema(BaseSchema):
     capacity: int
 
     def __post_init__(self):
-
-        if not isinstance(self.exposure, (int, float)):
-            raise SetupDeviceError('Время экспозиции должно быть числом!')
-        if not self.exposure > 0:
-            raise SetupDeviceError('Время экспозиции должно быть положительным числом!')
-
-        if not isinstance(self.capacity, int):
-            raise SetupDeviceError('Количество накоплений должно быть целым числом!')
-        if not (self.capacity > 0 and self.capacity < 2**24):
-            raise SetupDeviceError('Количество накоплений должно быть числом с диапазоне [1; 2**24 - 1]!')
+        validate_exposure(self.exposure)
+        validate_capacity(self.capacity)
 
     @property
     def duration_total(self) -> MilliSecond:
@@ -83,9 +67,17 @@ class ExtendedSchema(BaseSchema):
     capacity: tuple[int, int]
 
     def __post_init__(self):
-        assert isinstance(self.exposure, tuple)
-        assert isinstance(self.capacity, tuple)
-        assert len(self.exposure) == len(self.capacity)
+
+        if not isinstance(self.exposure, tuple):
+            raise SetupDeviceError('Время экспозиции должно быть кортежем!')
+        if not isinstance(self.capacity, tuple):
+            raise SetupDeviceError('Количество накоплений должно быть кортежем!')
+        if not len(self.exposure) == len(self.capacity):
+            raise SetupDeviceError('Длина кортежей должна совпадать!')
+
+        for exposure, capacity in zip(self.exposure, self.capacity):
+            validate_exposure(exposure)
+            validate_capacity(capacity)
 
     @property
     def duration_total(self) -> MilliSecond:
@@ -104,7 +96,7 @@ class ExtendedSchema(BaseSchema):
     def __iter__(self) -> Iterator:
         return itertools.chain(*[
             (to_microsecond(exposure), capacity)
-            for exposure, capacity in zip(reversed(self.exposure), reversed(self.capacity))  # TODO: reverse items for compatibility with Atom
+            for exposure, capacity in zip(reversed(self.exposure), reversed(self.capacity))  # TODO: items are reversed for compatibility with `Atom`
         ])
 
     def __str__(self) -> str:
@@ -131,3 +123,27 @@ def fetch_schema(exposure, capacity):
         return ExtendedSchema(exposure, capacity)
 
     raise ValueError
+
+
+# --------        utils        --------
+def to_microsecond(__exposure: MilliSecond) -> MicroSecond:
+    return int(np.round(1000 * __exposure).astype(int))
+
+
+# --------        validators        --------
+def validate_exposure(exposure: MilliSecond) -> None:
+
+    if not isinstance(exposure, (int, float)):
+        raise SetupDeviceError('Время экспозиции должно быть числом!')
+    if not exposure > 0:
+        raise SetupDeviceError('Время экспозиции должно быть положительным числом!')
+    if not to_microsecond(exposure) % 100 == 0:
+        raise SetupDeviceError('Время экспозиции должно быть кратным 100 мкс!')
+
+
+def validate_capacity(capacity: int) -> None:
+
+    if not isinstance(capacity, int):
+        raise SetupDeviceError('Количество накоплений должно быть целым числом!')
+    if not (capacity > 0 and capacity < 2**24):
+        raise SetupDeviceError('Количество накоплений должно быть числом с диапазоне [1; 2**24 - 1]!')
