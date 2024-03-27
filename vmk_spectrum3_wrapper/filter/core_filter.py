@@ -38,7 +38,7 @@ class ShuffleFilter(CoreFilter):
     @overload
     def kernel(self, value: Array[bool]) -> Array[bool]: ...
     @overload
-    def kernel(self, value: None) -> None:
+    def kernel(self, value: None) -> None: ...
     def kernel(self, value):
         if value is None:
             return None
@@ -128,7 +128,6 @@ class OffsetFilter(CoreFilter):
     def kernel(self, value: Array[bool], kind: Literal['intensity', 'clipped', 'deviation']) -> Array[bool]: ...
     @overload
     def kernel(self, value: None, kind: Literal['intensity', 'clipped', 'deviation']) -> None: ...
-    @overload
     def kernel(self, value, kind):
         if (value is None):
             return None
