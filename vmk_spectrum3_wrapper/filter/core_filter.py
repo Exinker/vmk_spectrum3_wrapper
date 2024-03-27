@@ -15,7 +15,7 @@ from vmk_spectrum3_wrapper.units import Units
 from .base_filter import BaseFilter
 
 
-class FlowFilter(BaseFilter):
+class CoreFilter(BaseFilter):
     """Не снижающий размерность фильтр."""
 
     @abstractmethod
@@ -23,7 +23,7 @@ class FlowFilter(BaseFilter):
         raise NotImplementedError
 
 
-class ShuffleFilter(FlowFilter):
+class ShuffleFilter(CoreFilter):
     """Смещения и перестановок фильтр."""
 
     def __init__(self, shuffle: Shuffle):
@@ -57,7 +57,7 @@ class ShuffleFilter(FlowFilter):
         )
 
 
-class ClipFilter(FlowFilter):
+class ClipFilter(CoreFilter):
     """Маскирование зашкаленных отсчетов фильтр."""
 
     def __init__(self, adc: ADC | None = None):
@@ -79,7 +79,7 @@ class ClipFilter(FlowFilter):
         )
 
 
-class ScaleFilter(FlowFilter):
+class ScaleFilter(CoreFilter):
     """Масштабирования фильтр. Перевод из `Units.digit` в `units`."""
 
     def __init__(self, units: Units | None = None):
@@ -112,7 +112,7 @@ class ScaleFilter(FlowFilter):
         )
 
 
-class OffsetFilter(FlowFilter):
+class OffsetFilter(CoreFilter):
     """Смещение `intensity` на велиличину `offset` фильтр."""
 
     def __init__(self, offset: Data):
@@ -154,7 +154,7 @@ class OffsetFilter(FlowFilter):
         )
 
 
-class DeviationFilter(FlowFilter):
+class DeviationFilter(CoreFilter):
     """Расчет стандартного отклонения фильтр."""
 
     def __init__(self, units: Units, adc: ADC | None = None, detector: Detector | None = None):
