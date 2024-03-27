@@ -6,6 +6,7 @@ from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.typing import MilliSecond
 
 from .base_filter import BaseFilter
+from .switch_filter import split_shots
 
 
 class BufferFilter(BaseFilter):
@@ -48,14 +49,34 @@ class HighDynamicRangeIntegrationFilter(BufferFilter):
                 pickle.dump(datum, file)
 
         #
-        lelic, bolic = [
-            datum.intensity[i, :] * (max(exposure)/exposure[i])
-            for i in range(datum.n_times)
-        ]
+        shots = split_shots(datum, capacity=(1, 1))
+
+        #
+        intensity = np.zeros((datum.n_times, datum.n_numbers))
+        deviation = np.zeros((datum.n_times, datum.n_numbers))
+        weight = np.zeros((datum.n_times, datum.n_numbers))
+        factor = np.zeros(datum.n_times)
+        for i, shot in enumerate(shots):
+            factor[i] = (max(exposure)/exposure[i])
+
+            intensity[i] = shot.intensity * factor[i]
+            deviation[i] = shot.deviation * factor[i]
+            deviation[i, shot.clipped.flatten()] = np.infty
+            weight[i] = (1 / deviation[i]) ** 2
+
+        intensity = np.array([np.dot(intensity, w) for intensity, w in zip(intensity.T, weight.T)] / np.sum(weight, axis=0))
+        deviation = np.sqrt(np.array([np.dot(deviation[deviation < np.infty]**2, w[deviation < np.infty]**2) for deviation, w in zip(deviation.T, weight.T)] / np.sum(weight, axis=0) ** 2))
+        clipped = np.min([shot.clipped for shot in shots], axis=0).flatten()
+
+        # restore clipped values
+        if any(clipped):
+            intensity[clipped] = [shot.intensity * factor[i] for i, shot in shots][-1][clipped]
+            deviation[clipped] = [shot.deviation * factor[i] for i, shot in shots][-1][clipped]
 
         #
         return Datum(
-            intensity=np.nanmean([lelic, bolic], axis=0),
+            intensity=intensity,
             units=datum.units,
-            clipped=np.min(datum.clipped, axis=0),
+            clipped=clipped,
+            deviation=deviation,
         )
