@@ -8,7 +8,7 @@ from .pipe_filter import PipeFilter
 from .switch_filter import SwitchFilter
 
 
-class CoreFilterPreset(PipeFilter):
+class CorePreset(PipeFilter):
 
     def __init__(
         self,
@@ -29,7 +29,7 @@ class CoreFilterPreset(PipeFilter):
         ])
 
 
-class StandardIntegrationFilterPreset(PipeFilter):
+class StandardIntegrationPreset(PipeFilter):
 
     def __init__(
         self,
@@ -40,12 +40,12 @@ class StandardIntegrationFilterPreset(PipeFilter):
         is_averaging: bool = True,
     ):
         super().__init__(filters=[
-            CoreFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark),
+            CorePreset(shuffle=shuffle, units=units, bias=bias, dark=dark),
             StandardIntegrationFilter(is_averaging=is_averaging),
         ])
 
 
-class HighDynamicRangeIntegrationFilterPreset(PipeFilter):
+class HighDynamicRangeIntegrationPreset(PipeFilter):
 
     def __init__(
         self,
@@ -56,8 +56,8 @@ class HighDynamicRangeIntegrationFilterPreset(PipeFilter):
     ):
         super().__init__(filters=[
             SwitchFilter([
-                StandardIntegrationFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark[0, :]),
-                StandardIntegrationFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark[1, :]),
+                StandardIntegrationPreset(shuffle=shuffle, units=units, bias=bias, dark=dark[0, :]),
+                StandardIntegrationPreset(shuffle=shuffle, units=units, bias=bias, dark=dark[1, :]),
             ]),
             HighDynamicRangeIntegrationFilter(),
         ])
