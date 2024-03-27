@@ -9,7 +9,7 @@ from vmk_spectrum3_wrapper.data import Data, DataMeta
 from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
 from vmk_spectrum3_wrapper.filter import F
-from vmk_spectrum3_wrapper.measurement.measurement import fetch_measurement
+from vmk_spectrum3_wrapper.measurement.measurement import Measurement, fetch_measurement
 from vmk_spectrum3_wrapper.measurement.schema import ExtendedSchema, StandardSchema
 from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond
 
@@ -32,11 +32,10 @@ class Device:
     def __init__(self, config: DeviceConfig | None = None, verbose: bool = False) -> None:
 
         # config
-        self._device_config = config or DeviceConfigAuto()
-        self._read_config = None
+        self._config = config or DeviceConfigAuto()
 
         # device
-        device = _create_device(self._device_config)
+        device = _create_device(self._config)
         device.set_frame_callback(self._on_frame)
         device.set_status_callback(self._on_status)
         device.set_error_callback(self._on_error)
@@ -45,8 +44,8 @@ class Device:
         self._status = None
         self._is_connected = False
 
-        # storage
-        self._storage = None
+        # measurement
+        self._measurement = None
 
         #
         self.condition = threading.Condition(lock=None)
@@ -57,8 +56,16 @@ class Device:
         return self._device
 
     @property
+    def config(self) -> DeviceConfig:
+        return self._config
+
+    @property
     def status(self) -> Mapping[IP, ps3.AssemblyStatus] | None:
         return self._status
+
+    @property
+    def measurement(self) -> Measurement | None:
+        return self._measurement
 
     # --------        handler        --------
     def connect(self) -> 'Device':
@@ -129,7 +136,7 @@ class Device:
             return self
 
         # setup device
-        schema = self._measurement.schema
+        schema = self.measurement.schema
 
         try:
             if isinstance(schema, StandardSchema):
@@ -145,8 +152,7 @@ class Device:
             self._wait_set_exposure(schema.duration_total)
 
             if self.verbose:
-                message = f'Setup config: {self._read_config}'
-                print(message)
+                print(f'Read schema: {schema}')
 
         return self
 
@@ -167,30 +173,34 @@ class Device:
             return None
 
         # setup measurement
-        self._measurement.setup(n_iters)
+        self.measurement.setup(n_iters)
 
         # read data
-        n_frames = self._measurement.capacity_total
+        n_frames = self.measurement.capacity_total
 
         self.device.read(n_frames)
         self._wait_read()
 
         # block
         if blocking:
-            while self._measurement.progress < 1:
+            while self.measurement.progress < 1:
                 time.sleep(1e-3*timeout)
 
-            storage = self._measurement.storage
+            try:
+                storage = self.measurement.storage
 
-            return Data.squeeze(
-                storage.pull(),
-                DataMeta(
-                    exposure=storage.exposure,
-                    capacity=storage.capacity,
-                    started_at=storage.started_at,
-                    finished_at=storage.finished_at,
-                ),
-            )
+                return Data.squeeze(
+                    storage.pull(),
+                    meta=DataMeta(
+                        exposure=storage.exposure,
+                        capacity=storage.capacity,
+                        started_at=storage.started_at,
+                        finished_at=storage.finished_at,
+                    ),
+                )
+
+            finally:
+                self._measurement = None
 
     def is_status(self, __status: ps3.AssemblyStatus | Sequence[ps3.AssemblyStatus]) -> bool:
 
@@ -213,7 +223,7 @@ class Device:
 
     # --------        callbacks        --------
     def _on_frame(self, frame: Array[int]) -> None:
-        self._measurement.put(frame)
+        self.measurement.put(frame)
 
         # verbose
         if self.verbose:
@@ -261,13 +271,13 @@ class Device:
 
     def _check_measurement(self) -> None:
 
-        if self._measurement is None:
+        if self.measurement is None:
             raise SetupDeviceError('Setup a device before!')
 
     # --------        private        --------
     def _wait_set_exposure(self, duration: MilliSecond) -> None:
         # FIXME: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
-        duration = self._device_config.change_exposure_delay
+        duration = self._config.change_exposure_delay
 
         time.sleep(1e-3*duration)  # delay after exposure update
 
@@ -283,8 +293,8 @@ class Device:
                 '\tstatus: {status},'.format(
                     status=str(self.status),
                 ),
-                '\tsetup: [{config}],'.format(
-                    config=self._read_config,
+                '\tsetup: [{schema}],'.format(
+                    schema=self.measurement.schema if self.measurement else 'none',
                 ),
             ]),
         )
