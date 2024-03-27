@@ -2,6 +2,7 @@ from collections.abc import Sequence
 
 import numpy as np
 
+from vmk_spectrum3_wrapper.config import DEBUG
 from vmk_spectrum3_wrapper.data import Datum
 
 from .base_filter import BaseFilter
@@ -9,7 +10,7 @@ from .pipe_filter import PipeFilter
 
 
 class SwitchFilter(BaseFilter):
-    """ """
+    """Фильт, разделяющий конвееры обработки данных на несколько (два)."""
 
     def __init__(self, filters: Sequence[PipeFilter]):
         self._filters = filters
@@ -23,7 +24,9 @@ class SwitchFilter(BaseFilter):
         shots = split_shots(datum, capacity)
 
         for i, handler in enumerate(self.filters):
-            # print(type(handler), handler)
+            if DEBUG:
+                print(type(handler), handler)
+
             try:
                 shots[i] = handler(shots[i])
             except Exception as error:
@@ -31,12 +34,9 @@ class SwitchFilter(BaseFilter):
 
         return merge_shots(shots)
 
-    def __getitem__(self, index: int) -> PipeFilter:
-        return self.filters[index]
-
 
 # --------        utils        --------
-def split_shots(datum: Datum, capacity: tuple[int, int], t0: int = 0) -> list[Datum]:
+def split_shots(datum: Datum, capacity: tuple[int, int]) -> list[Datum]:
     """Разделить `datum` по `capacity` на несколько (два)."""
 
     def inner(capacity: tuple[int, int]) -> slice:
@@ -63,8 +63,9 @@ def merge_shots(shots: Sequence[Datum]) -> Datum:
 
         return None
 
-    for i, shot in enumerate(shots):
-        print(f'short({i}): {shot.n_times}x{shot.n_numbers}', shot.intensity, shot.clipped)
+    if DEBUG:
+        for i, shot in enumerate(shots):
+            print(f'short({i}): {shot.n_times}x{shot.n_numbers}', shot.intensity, shot.clipped)
 
     return Datum(
         intensity=inner([shot.intensity for shot in shots]),

@@ -2,8 +2,8 @@ from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.shuffle import Shuffle
 from vmk_spectrum3_wrapper.units import Units
 
-from .buffer_filter import HighDynamicRangeIntegrationFilter, IntegrationFilter
-from .flow_filter import ClipFilter, DeviationFilter, OffsetFilter, ScaleFilter, ShuffleFilter
+from .integration_filter import HighDynamicRangeIntegrationFilter, StandardIntegrationFilter
+from .core_filter import ClipFilter, DeviationFilter, OffsetFilter, ScaleFilter, ShuffleFilter
 from .pipe_filter import PipeFilter
 from .switch_filter import SwitchFilter
 
@@ -29,7 +29,7 @@ class CoreFilterPreset(PipeFilter):
         ])
 
 
-class IntegrationFilterPreset(PipeFilter):
+class StandardIntegrationFilterPreset(PipeFilter):
 
     def __init__(
         self,
@@ -41,7 +41,7 @@ class IntegrationFilterPreset(PipeFilter):
     ):
         super().__init__(filters=[
             CoreFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark),
-            IntegrationFilter(is_averaging=is_averaging),
+            StandardIntegrationFilter(is_averaging=is_averaging),
         ])
 
 
@@ -56,8 +56,8 @@ class HighDynamicRangeIntegrationFilterPreset(PipeFilter):
     ):
         super().__init__(filters=[
             SwitchFilter([
-                IntegrationFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark[0, :]),
-                IntegrationFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark[1, :]),
+                StandardIntegrationFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark[0, :]),
+                StandardIntegrationFilterPreset(shuffle=shuffle, units=units, bias=bias, dark=dark[1, :]),
             ]),
             HighDynamicRangeIntegrationFilter(),
         ])
