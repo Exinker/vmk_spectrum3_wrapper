@@ -13,7 +13,7 @@ class CoreFilterPreset(PipeFilter):
     def __init__(
         self,
         shuffle: Shuffle | None = None,
-        units: Units = None,
+        units: Units | None = None,
         bias: Data | None = None,
         dark: Data | None = None,
     ):
