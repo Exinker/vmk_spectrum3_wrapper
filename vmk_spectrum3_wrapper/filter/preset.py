@@ -2,8 +2,8 @@ from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.shuffle import Shuffle
 from vmk_spectrum3_wrapper.units import Units
 
-from .integration_filter import HighDynamicRangeIntegrationFilter, StandardIntegrationFilter
 from .core_filter import ClipFilter, DeviationFilter, OffsetFilter, ScaleFilter, ShuffleFilter
+from .integration_filter import HighDynamicRangeIntegrationFilter, StandardIntegrationFilter
 from .pipe_filter import PipeFilter
 from .switch_filter import SwitchFilter
 
