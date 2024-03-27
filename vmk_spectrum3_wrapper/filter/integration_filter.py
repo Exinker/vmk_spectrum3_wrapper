@@ -9,12 +9,12 @@ from .base_filter import BaseFilter
 from .switch_filter import split_shots
 
 
-class BufferFilter(BaseFilter):
+class IntegrationFilter(BaseFilter):
     """Снижающий размерность фильтр."""
 
 
-# --------        standard integration filters        --------
-class IntegrationFilter(BufferFilter):
+# --------        standard integration filter        --------
+class StandardIntegrationFilter(IntegrationFilter):
     """Интегральный фильтр."""
 
     def __init__(self, is_averaging: bool = True):
@@ -37,7 +37,7 @@ class IntegrationFilter(BufferFilter):
 
 
 # --------        high dynamic range (HDR) integration filter        --------
-class HighDynamicRangeIntegrationFilter(BufferFilter):
+class HighDynamicRangeIntegrationFilter(IntegrationFilter):
     """Интегральный в расширенном динамическом диапазоне фильтр."""
 
     # --------        private        --------
