@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Literal
+from typing import Any, Literal, overload
 
 import numpy as np
 
@@ -23,24 +23,27 @@ class FlowFilter(BaseFilter):
         raise NotImplementedError
 
 
-# --------        core filters        --------
 class ShuffleFilter(FlowFilter):
     """Смещения и перестановок фильтр."""
 
     def __init__(self, shuffle: Shuffle):
-        self.shuffle = shuffle
+        self._shuffle = shuffle
 
-    def kernel(self, value: Array[Digit] | None) -> Array[Digit] | None:
+    @property
+    def shuffle(self) -> Shuffle:
+        return self._shuffle
+
+    @overload
+    def kernel(self, value: Array[Digit]) -> Array[Digit]: ...
+    @overload
+    def kernel(self, value: Array[bool]) -> Array[bool]: ...
+    @overload
+    def kernel(self, value: None) -> None:
+    def kernel(self, value):
         if value is None:
             return None
 
-        match value.ndim:
-            case 1:
-                return value[::-1]
-            case 2:
-                return np.fliplr(value)
-            case _:
-                raise ValueError
+        return self.shuffle(value)
 
     # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
@@ -87,7 +90,11 @@ class ScaleFilter(FlowFilter):
     def units(self) -> Units:
         return self._units
 
-    def kernel(self, value: Array[Digit] | None) -> Array[U] | None:
+    @overload
+    def kernel(self, value: Array[Digit]) -> Array[U]: ...
+    @overload
+    def kernel(self, value: None) -> None: ...
+    def kernel(self, value):
         if value is None:
             return None
 
@@ -105,7 +112,6 @@ class ScaleFilter(FlowFilter):
         )
 
 
-# --------        calibrations        --------
 class OffsetFilter(FlowFilter):
     """Смещение `intensity` на велиличину `offset` фильтр."""
 
@@ -116,7 +122,14 @@ class OffsetFilter(FlowFilter):
     def offset(self) -> Data:
         return self._offset
 
-    def kernel(self, value: Array | None, kind: Literal['intensity', 'clipped', 'deviation']) -> Array | None:
+    @overload
+    def kernel(self, value: Array[U], kind: Literal['intensity', 'clipped', 'deviation']) -> Array[U]: ...
+    @overload
+    def kernel(self, value: Array[bool], kind: Literal['intensity', 'clipped', 'deviation']) -> Array[bool]: ...
+    @overload
+    def kernel(self, value: None, kind: Literal['intensity', 'clipped', 'deviation']) -> None: ...
+    @overload
+    def kernel(self, value, kind):
         if (value is None):
             return None
 
@@ -141,7 +154,6 @@ class OffsetFilter(FlowFilter):
         )
 
 
-# --------        others        --------
 class DeviationFilter(FlowFilter):
     """Расчет стандартного отклонения фильтр."""
 
