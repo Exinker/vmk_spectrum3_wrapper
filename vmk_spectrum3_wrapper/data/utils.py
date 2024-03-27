@@ -37,6 +37,7 @@ def crop(value: Array[U], index) -> Array[U]: ...
 @overload
 def crop(value: Array[bool], index) -> Array[bool]: ...
 def crop(value, index):
+
     if value is None:
         return None
 
@@ -45,28 +46,12 @@ def crop(value, index):
 
 
 @overload
-def split(value: Array[U], index: Array[int]) -> Array[U]: ...
-@overload
-def split(value: Array[bool], index: Array[int]) -> Array[bool]: ...
-@overload
-def split(value: None, index: Array[int]) -> None: ...
-def split(value, index):
-    if value is None:
-        return None
-
-    if value.ndim == 1:
-        return value
-
-    return value[index, :]
-
-
-
-@overload
 def join(values: Sequence[Array[U]]) -> Array[U]: ...
 @overload
 def join(values: Sequence[Array[bool]]) -> Array[bool]: ...
 def join(values):
-    if values[0] is None:
+
+    if any(value is None for value in values):
         return None
 
     return np.concatenate(values)
