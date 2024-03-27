@@ -35,7 +35,7 @@ class Device:
         self._config = config or DeviceConfigAuto()
 
         # device
-        device = _create_device(self._config)
+        device = _create_device(self.config)
         device.set_frame_callback(self._on_frame)
         device.set_status_callback(self._on_status)
         device.set_error_callback(self._on_error)
@@ -277,7 +277,7 @@ class Device:
     # --------        private        --------
     def _wait_set_exposure(self, duration: MilliSecond) -> None:
         # FIXME: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
-        duration = self._config.change_exposure_delay
+        duration = self.config.change_exposure_delay
 
         time.sleep(1e-3*duration)  # delay after exposure update
 
