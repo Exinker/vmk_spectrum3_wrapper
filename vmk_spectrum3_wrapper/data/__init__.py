@@ -1,2 +1,2 @@
-from .data import Data, Datum
-from .meta import DataMeta
+from .data import Data, DataMeta
+from .datum import Datum
