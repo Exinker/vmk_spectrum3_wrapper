@@ -1,7 +1,6 @@
 import pickle
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import overload
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -46,81 +45,6 @@ class BaseData(ABC):
     @abstractmethod
     def show(self) -> None:
         raise NotImplementedError
-
-    # --------        private        --------
-    # def __add__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
-    #     cls = self.__class__
-
-    #     print(cls.__name__, cls)
-
-    #     #
-    #     if isinstance(other, float):
-    #         intensity = np.full(other, (self.n_times, self.n_number))
-    #         clipped = np.full(False, (self.n_times, self.n_number))
-
-    #     if isinstance(other, np.ndarray):
-    #         assert self.n_numbers == len(other)
-
-    #         intensity = other
-    #         clipped = np.full(False, other.shape)
-
-    #     if isinstance(other, BaseData):
-    #         # assert other.n_times == self.n_times
-    #         assert other.n_numbers == self.n_numberss
-    #         assert other.units == self.units
-
-    #         intensity = other.intensity
-    #         clipped = other.clipped
-
-    #     #
-    #     return cls(
-    #         intensity=self.intensity + intensity,
-    #         units=self.units,
-    #         clipped=self.clipped & clipped,
-    #         meta=self.meta,
-    #     )
-
-    # def __iadd__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
-    #     return self + other
-
-    # def __radd__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
-    #     return self + other
-
-    # def __sub__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
-    #     cls = self.__class__
-
-    #     #
-    #     if isinstance(other, float):
-    #         intensity = np.full(other, (self.n_times, self.n_number))
-    #         clipped = np.full(False, (self.n_times, self.n_number))
-
-    #     if isinstance(other, np.ndarray):
-    #         assert self.n_numbers == len(other)
-
-    #         intensity = other
-    #         clipped = np.full(False, other.shape)
-
-    #     if isinstance(other, BaseData):
-    #         assert other.n_times == self.n_times
-    #         assert other.n_numbers == self.n_numbers
-    #         assert other.units == self.units
-
-    #         intensity = reshape(other.intensity)
-    #         clipped = reshape(other.clipped)
-
-    #     #
-    #     return cls(
-    #         intensity=self.intensity - intensity,
-    #         units=self.units,
-    #         clipped=self.clipped & clipped,
-    #         meta=self.meta,
-    #     )
-
-    # def __isub__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
-    #     return self - other
-
-    # def __rsub__(self, other: U | Array[U] | 'BaseData') -> 'BaseData':
-    #     return self - other
 
 
 class Datum(BaseData):
@@ -226,9 +150,6 @@ class Data(BaseData):
 
     @classmethod
     def squeeze(cls, __items: Sequence[Datum], meta: DataMeta) -> 'Data':
-        for i, item in enumerate(__items):
-            print(f'{i}: {item.intensity.shape}')
-
         return cls(
             intensity=join([item.intensity for item in __items]),
             units=__items[0].units,

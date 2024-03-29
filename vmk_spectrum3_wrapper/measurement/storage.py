@@ -5,7 +5,7 @@ import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.filter.pipe_filter import PipeFilter
-from vmk_spectrum3_wrapper.filter.preset import IntegrationFilterPreset
+from vmk_spectrum3_wrapper.filter.preset import StandardIntegrationPreset
 from vmk_spectrum3_wrapper.typing import Array, MilliSecond, Second
 from vmk_spectrum3_wrapper.units import Units
 
@@ -15,7 +15,7 @@ class Storage:
     def __init__(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int], handler: PipeFilter | None = None):
         self._exposure = exposure
         self._capacity = capacity
-        self._handler = handler or IntegrationFilterPreset()
+        self._handler = handler or StandardIntegrationPreset()
 
         self._started_at = None  # время окончания измерения первого кадра
         self._finished_at = None  # время окончания измерения последнего кадра
