@@ -12,11 +12,11 @@ from vmk_spectrum3_wrapper.shuffle import Shuffle
 from vmk_spectrum3_wrapper.typing import Array, Digit, U
 from vmk_spectrum3_wrapper.units import Units
 
-from .base_filter import BaseFilter
+from .filter import AbstractFilter
 
 
-class CoreFilter(BaseFilter):
-    """Не снижающий размерность фильтр."""
+class CoreFilter(AbstractFilter):
+    """Базовый класс для основных фильтров (не снижающих размерность данных!)."""
 
     @abstractmethod
     def kernel(self, value: Array[U] | None) -> Array[Any] | None:

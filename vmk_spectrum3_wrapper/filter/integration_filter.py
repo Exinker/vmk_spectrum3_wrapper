@@ -5,12 +5,12 @@ import numpy as np
 from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.typing import MilliSecond
 
-from .base_filter import BaseFilter
+from .filter import AbstractFilter
 from .switch_filter import split_shots
 
 
-class IntegrationFilter(BaseFilter):
-    """Снижающий размерность фильтр."""
+class IntegrationFilter(AbstractFilter):
+    """Базоый класс для интегральных фильтров (снижающих размерность данных по времени)."""
 
 
 # --------        standard integration filter        --------

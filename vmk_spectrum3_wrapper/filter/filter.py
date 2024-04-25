@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 from vmk_spectrum3_wrapper.typing import Array, U
 
 
-class BaseFilter(ABC):
+class AbstractFilter(ABC):
+    """Абстрактный базовый класс фильтров обработки данных."""
 
     # --------        private        --------
     def __bool__(self) -> bool:

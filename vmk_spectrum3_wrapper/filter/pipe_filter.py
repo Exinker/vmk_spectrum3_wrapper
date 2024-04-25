@@ -3,11 +3,11 @@ from collections.abc import Sequence
 from vmk_spectrum3_wrapper.config import DEBUG
 from vmk_spectrum3_wrapper.data import Datum
 
-from .base_filter import BaseFilter
+from .filter import AbstractFilter
 from .typing import F
 
 
-class PipeFilter(BaseFilter):
+class PipeFilter(AbstractFilter):
     """Конвейер фильтров."""
 
     def __init__(self, filters: Sequence[F]):

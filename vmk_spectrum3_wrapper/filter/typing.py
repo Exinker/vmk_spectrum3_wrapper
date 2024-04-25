@@ -1,6 +1,6 @@
 from typing import NewType
 
-from .base_filter import BaseFilter
+from .filter import AbstractFilter
 
 
-F = NewType('F', BaseFilter)
+F = NewType('F', AbstractFilter)
