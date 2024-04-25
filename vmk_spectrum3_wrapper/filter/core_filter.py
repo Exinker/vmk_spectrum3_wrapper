@@ -33,6 +33,8 @@ class ShuffleFilter(CoreFilter):
         return super().__new__(cls)
 
     def __init__(self, shuffle: Shuffle):
+        assert isinstance(shuffle, Shuffle), f'Тип shuffle: {type(shuffle)} не поддерживается!'
+
         self._shuffle = shuffle
 
     @property
@@ -128,6 +130,8 @@ class OffsetFilter(CoreFilter):
         return super().__new__(cls)
 
     def __init__(self, offset: Data):
+        assert isinstance(offset, Data), f'Тип offset: {type(offset)} не поддерживается!'
+
         self._offset = offset
 
     @property
