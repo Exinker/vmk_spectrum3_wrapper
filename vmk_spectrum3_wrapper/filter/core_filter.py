@@ -26,6 +26,12 @@ class CoreFilter(AbstractFilter):
 class ShuffleFilter(CoreFilter):
     """Смещения и перестановок фильтр."""
 
+    def __new__(cls, shuffle: Shuffle | None):
+        if shuffle is None:
+            return None
+
+        return super().__new__(cls)
+
     def __init__(self, shuffle: Shuffle):
         self._shuffle = shuffle
 
@@ -115,6 +121,12 @@ class ScaleFilter(CoreFilter):
 class OffsetFilter(CoreFilter):
     """Смещение `intensity` на велиличину `offset` фильтр."""
 
+    def __new__(cls, offset: Data | None):
+        if offset is None:
+            return None
+
+        return super().__new__(cls)
+
     def __init__(self, offset: Data):
         self._offset = offset
 
@@ -156,7 +168,13 @@ class OffsetFilter(CoreFilter):
 class DeviationFilter(CoreFilter):
     """Расчет стандартного отклонения фильтр."""
 
-    def __init__(self, units: Units, adc: ADC | None = None, detector: Detector | None = None):
+    def __new__(cls, offset: Data | None, units: Units):
+        if offset is None:
+            return None
+
+        return super().__new__(cls)
+
+    def __init__(self, offset: Data, units: Units, adc: ADC | None = None, detector: Detector | None = None):
         self._units = units
         self._adc = adc or _ADC  # FIXME: remove it!
         self._detector = detector or _DETECTOR  # FIXME: remove it!

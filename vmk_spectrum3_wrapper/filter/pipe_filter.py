@@ -11,7 +11,7 @@ class PipeFilter(AbstractFilter):
     """Конвейер фильтров."""
 
     def __init__(self, filters: Sequence[F]):
-        self._filters = [item for item in filters if item is not None]
+        self._filters = filters
 
     @property
     def filters(self) -> Sequence[F]:

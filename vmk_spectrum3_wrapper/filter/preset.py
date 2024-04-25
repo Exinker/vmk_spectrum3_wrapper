@@ -19,14 +19,18 @@ class CorePreset(PipeFilter):
     ):
         units = units or Units.percent
 
-        super().__init__(filters=[
-            ShuffleFilter(shuffle) if isinstance(shuffle, Shuffle) else None,
+        filters = [
+            ShuffleFilter(shuffle),
             ClipFilter(),
             ScaleFilter(units=units),
-            OffsetFilter(bias) if isinstance(bias, Data) else None,
-            DeviationFilter(units=units) if isinstance(bias, Data) else None,
-            OffsetFilter(dark) if isinstance(dark, Data) else None,
-        ])
+            OffsetFilter(offset=bias),
+            DeviationFilter(offset=bias, units=units),
+            OffsetFilter(offset=dark),
+        ]
+
+        super().__init__(
+            filters=[item for item in filters if item is not None],
+        )
 
 
 class StandardIntegrationPreset(PipeFilter):
