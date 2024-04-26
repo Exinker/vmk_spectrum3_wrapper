@@ -1,4 +1,3 @@
-import threading
 import time
 from collections.abc import Sequence
 from typing import Mapping
@@ -49,7 +48,6 @@ class Device:
         self._storage = None
 
         #
-        self.condition = threading.Condition(lock=None)
         self.verbose = verbose
 
     @property
@@ -221,10 +219,6 @@ class Device:
 
     def _on_status(self, status: Mapping[IP, ps3.AssemblyStatus]) -> None:
         self._status = status
-
-        # notify all
-        with self.condition:
-            self.condition.notify_all()
 
         # verbose
         if self.verbose:
