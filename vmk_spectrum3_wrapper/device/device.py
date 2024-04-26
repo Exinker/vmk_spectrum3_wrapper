@@ -44,9 +44,6 @@ class Device:
         self._status = None
         self._is_connected = False
 
-        # storage
-        self._storage = None
-
         #
         self.verbose = verbose
 
