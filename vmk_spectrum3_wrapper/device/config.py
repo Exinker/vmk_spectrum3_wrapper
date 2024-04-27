@@ -18,9 +18,9 @@ class DeviceConfigAuto:
 
 
 @dataclass
-class DeviceConfigEthernet:
-    ip: IP | Sequence[IP]
+class DeviceConfigManual:
+    ip: Sequence[IP]
     change_exposure_delay: MilliSecond = field(default=CHANGE_EXPOSURE_DELAY)
 
 
-DeviceConfig: TypeAlias = DeviceConfigAuto | DeviceConfigEthernet
+DeviceConfig: TypeAlias = DeviceConfigAuto | DeviceConfigManual
