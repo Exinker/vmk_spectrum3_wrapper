@@ -10,7 +10,7 @@ from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, 
 from vmk_spectrum3_wrapper.filter import F
 from vmk_spectrum3_wrapper.measurement.measurement import fetch_measurement
 from vmk_spectrum3_wrapper.measurement.schema import ExtendedSchema, StandardSchema
-from vmk_spectrum3_wrapper.typing import IP, MilliSecond
+from vmk_spectrum3_wrapper.typing import Array, Digit, IP, MilliSecond
 
 
 def _create_device(config: DeviceConfig) -> 'Device':
@@ -205,12 +205,14 @@ class Device:
 
     # --------        callbacks        --------
     def _on_context(self, context: ps3.AssemblyContext) -> None:
-        frame = context.raw_frame
+        self._on_frame(context.raw_frame)
+
+    def _on_frame(self, frame: Array[Digit]) -> None:
         self._measurement.put(frame)
 
         # verbose
         if self.verbose:
-            print('on_frame:', len(frame), flush=True)
+            print('on_frame:', len(frame), frame, flush=True)
 
     def _on_status(self, status: Mapping[IP, ps3.AssemblyStatus]) -> None:
         self._status = status
