@@ -94,11 +94,12 @@ class Measurement:
 
         if isinstance(self.schema, StandardSchema):
             return iter([
-                ps3.Exposure(self.schema.exposure * 1000), self.capacity_total, 0
+                ps3.Exposure(*self.schema), self.capacity_total, 0,
             ])
-
         if isinstance(self.schema, ExtendedSchema):
-            raise NotImplementedError
+            return iter([
+                ps3.Exposure(ps3.DoubleTimer(*self.schema)), self.capacity_total, 0,
+            ])
 
 
 # --------        factory        --------
