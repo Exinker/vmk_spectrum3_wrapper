@@ -5,11 +5,12 @@ from typing import Mapping
 import pyspectrum3 as ps3
 
 from vmk_spectrum3_wrapper.data import Data, DataMeta
-from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, DeviceConfigManual
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
 from vmk_spectrum3_wrapper.filter import F
 from vmk_spectrum3_wrapper.measurement import fetch_measurement
 from vmk_spectrum3_wrapper.typing import Array, Digit, IP, MilliSecond
+
+from .config import DeviceConfig, DeviceConfigAuto, DeviceConfigManual
 
 
 def _create_device(config: DeviceConfig) -> 'Device':
@@ -24,7 +25,7 @@ def _create_device(config: DeviceConfig) -> 'Device':
 
     if isinstance(config, DeviceConfigManual):
         device.initialize(
-            ps3.DeviceConfigFile([ps3.AssemblyConfigFile(ip) for ip in config.ip]).config(),
+            ps3.DeviceConfigFile([ps3.AssemblyConfigFile(ip) for ip in config.ip]),
         )
         return device
 
