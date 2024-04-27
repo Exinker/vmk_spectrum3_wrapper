@@ -59,7 +59,7 @@ class StandardSchema(BaseSchema):
         ])
 
     def __str__(self) -> str:
-        return f'{self.exposure}'
+        return f'({self.exposure}, {self.capacity})'
 
 
 @dataclass(frozen=True)
