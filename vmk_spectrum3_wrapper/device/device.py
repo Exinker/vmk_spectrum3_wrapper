@@ -30,10 +30,10 @@ class Device:
     def __init__(self, config: DeviceConfig | None = None, verbose: bool = False) -> None:
 
         # config
-        self._device_config = config or DeviceConfigAuto()
+        self.config = config or DeviceConfigAuto()
 
         # device
-        device = _create_device(self._device_config)
+        device = _create_device(self.config)
         device.set_context_callback(self._on_context)
         device.set_status_callback(self._on_status)
         device.set_error_callback(self._on_error)
@@ -133,7 +133,7 @@ class Device:
 
         else:
             self._wait(
-                duration=self._device_config.change_exposure_delay  # TODO: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
+                duration=self.config.change_exposure_delay  # TODO: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
             )
 
             if self.verbose:
