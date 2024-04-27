@@ -18,8 +18,8 @@ def sleep(timeout: MilliSecond) -> None:
     time.sleep(1e-3*timeout)
 
 
-def on_frame(data: Array):
-    DATA.append(data)
+def on_context(context: ps3.AssemblyContext):
+    DATA.append(context.raw_frame)
 
     time.sleep(1e-3*HIGH_LOAD_TIMEOUT)
 
@@ -30,7 +30,7 @@ def dev():
     dev.initialize(
         ps3.AutoConfig().config(),
     )
-    dev.set_frame_callback(on_frame)
+    dev.set_context_callback(on_context)
 
     dev.connect()
 

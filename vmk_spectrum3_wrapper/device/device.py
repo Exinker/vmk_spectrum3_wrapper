@@ -10,7 +10,7 @@ from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, 
 from vmk_spectrum3_wrapper.filter import F
 from vmk_spectrum3_wrapper.measurement.measurement import fetch_measurement
 from vmk_spectrum3_wrapper.measurement.schema import ExtendedSchema, StandardSchema
-from vmk_spectrum3_wrapper.typing import Array, IP, MilliSecond
+from vmk_spectrum3_wrapper.typing import IP, MilliSecond
 
 
 def _create_device(config: DeviceConfig) -> 'Device':
@@ -36,7 +36,7 @@ class Device:
 
         # device
         device = _create_device(self._device_config)
-        device.set_frame_callback(self._on_frame)
+        device.set_context_callback(self._on_context)
         device.set_status_callback(self._on_status)
         device.set_error_callback(self._on_error)
 
@@ -128,7 +128,8 @@ class Device:
 
         try:
             if isinstance(schema, StandardSchema):
-                self.device.set_exposure(*schema)
+                self.device.set_read_config(ps3.ReadConfig(ps3.DefaultCopyPipeFilter()))  # ?
+                self.device.set_measurement(ps3.Measurement(ps3.Exposure(schema.exposure * 1000), schema.capacity, 0))
             if isinstance(schema, ExtendedSchema):
                 self.device.set_double_exposure(*schema)
 
@@ -165,9 +166,7 @@ class Device:
         self._measurement.setup(n_iters)
 
         # read data
-        n_frames = self._measurement.capacity_total
-
-        self.device.read(n_frames)
+        self.device.read()
         self._wait_read()
 
         # block
@@ -207,7 +206,8 @@ class Device:
         raise StatusDeviceError(f'Status type {type(__status)} is not supported yet!')
 
     # --------        callbacks        --------
-    def _on_frame(self, frame: Array[int]) -> None:
+    def _on_context(self, context: ps3.AssemblyContext) -> None:
+        frame = context.raw_frame
         self._measurement.put(frame)
 
         # verbose
