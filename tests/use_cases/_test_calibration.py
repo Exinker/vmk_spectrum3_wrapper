@@ -17,7 +17,7 @@ def device() -> Device:
 
 
 def test_calibrate_dark(device: Device, exposure: MilliSecond = 4):
-    n_iters = 1
+    n_times = 1
 
     dark = calibrate_dark(
         device,
@@ -26,6 +26,7 @@ def test_calibrate_dark(device: Device, exposure: MilliSecond = 4):
     )
 
     device = device.setup(
+        n_times=n_times,
         exposure=exposure,
         capacity=2,
         storage=BufferStorage(
@@ -39,6 +40,6 @@ def test_calibrate_dark(device: Device, exposure: MilliSecond = 4):
         ),
     )
 
-    data = device.read(n_iters)
+    data = device.read()
 
-    assert n_iters == data.n_times
+    assert n_times == data.n_times

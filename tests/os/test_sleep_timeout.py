@@ -9,13 +9,13 @@ from vmk_spectrum3_wrapper.typing import MilliSecond
 
 if __name__ == '__main__':
     interval: tuple[MilliSecond, MilliSecond] = (0, 100)
-    n_iters = 4*(interval[1] - interval[0]) + 1
+    n_times = 4*(interval[1] - interval[0]) + 1
 
-    requested = np.linspace(*interval, n_iters)
-    actual = np.zeros(n_iters)
+    requested = np.linspace(*interval, n_times)
+    actual = np.zeros(n_times)
 
     # measure actual timeouts
-    for i, timeout in tqdm(enumerate(requested), total=n_iters):
+    for i, timeout in tqdm(enumerate(requested), total=n_times):
         started_at = time.perf_counter()
         time.sleep(1e-3*timeout)
 

@@ -16,20 +16,22 @@ def device() -> Device:
 
 
 def test_read_storage(device: Device, exposure: MilliSecond = 4):
-    n_iters = 1
+    n_times = 1
 
     device = device.setup(
+        n_times=n_times,
         exposure=exposure,
     )
-    data = device.read(n_iters)
+    data = device.read()
 
-    assert n_iters == data.n_times
+    assert n_times == data.n_times
 
 
 def test_read_buffer_storage(device: Device, exposure: MilliSecond = 4, capacity: int = 100):
-    n_iters = 1
+    n_times = 1
 
     device = device.setup(
+        n_times=n_times,
         exposure=exposure,
         capacity=capacity,
         storage=BufferStorage(
@@ -40,6 +42,6 @@ def test_read_buffer_storage(device: Device, exposure: MilliSecond = 4, capacity
         ),
     )
 
-    data = device.read(n_iters)
+    data = device.read()
 
-    assert n_iters == data.n_times
+    assert n_times == data.n_times
