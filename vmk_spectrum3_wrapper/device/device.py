@@ -31,7 +31,6 @@ class Device:
 
         # config
         self._device_config = config or DeviceConfigAuto()
-        self._read_config = None
 
         # device
         device = _create_device(self._device_config)
@@ -138,7 +137,7 @@ class Device:
             )
 
             if self.verbose:
-                message = f'Setup config: {self._read_config}'
+                message = f'Setup: {self._measurement}'
                 print(message)
 
         return self
@@ -264,8 +263,8 @@ class Device:
                 '\tstatus: {status},'.format(
                     status=str(self.status),
                 ),
-                '\tsetup: [{config}],'.format(
-                    config=self._read_config,
+                '\tsetup: [{measurement}],'.format(
+                    measurement=self._measurement,
                 ),
             ]),
         )
