@@ -42,6 +42,14 @@ class Detector(Enum):
         width=7,
         height=200,
     )
+    BLPP4100 = DetectorConfig(
+        name='БЛПП-4100',
+        capacity=100_000,
+        read_noise=20,
+        n_pixels=4096,
+        width=7,
+        height=1000,
+    )
 
     @property
     def config(self) -> DetectorConfig:
