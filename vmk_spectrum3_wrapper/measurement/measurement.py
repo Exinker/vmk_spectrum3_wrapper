@@ -86,6 +86,10 @@ class Measurement:
         return Data.squeeze(self.storage.pull())
 
     # --------        private        --------
+    def __str__(self) -> str:
+        cls = self.__class__
+        return f'{cls.__name__}({self.n_times}, schema={repr(self.schema)})'
+
     def __iter__(self) -> Iterator:
 
         if isinstance(self.schema, StandardSchema):
