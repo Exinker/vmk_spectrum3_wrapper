@@ -249,7 +249,6 @@ class Device:
             raise StatusDeviceError(message)
 
     def _check_measurement(self) -> None:
-
         if self._measurement is None:
             raise SetupDeviceError('Setup a device before!')
 

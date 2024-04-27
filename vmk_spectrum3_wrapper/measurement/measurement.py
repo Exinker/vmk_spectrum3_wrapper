@@ -10,6 +10,12 @@ from .storage import Storage
 
 
 class Measurement:
+    """Менеджер измерения.
+    Параметры:
+        `n_times` - количество выполнений схемы измерений;
+        `schema` - схема измерения;
+        `storage` - хранилище данных.
+    """
 
     def __init__(self, n_times: int, schema: Schema, storage: Storage):
         self._n_times = n_times
@@ -33,6 +39,7 @@ class Measurement:
 
     @property
     def progress(self) -> float | None:
+        """Доля выполненного измерения."""
         if self.n_times is None:
             return None
 
