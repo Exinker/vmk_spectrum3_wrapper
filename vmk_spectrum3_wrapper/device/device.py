@@ -139,7 +139,9 @@ class Device:
             return self
 
         else:
-            self._wait_set_exposure(schema.duration_total)
+            self._wait(
+                duration=self._device_config.change_exposure_delay  # FIXME: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
+            )
 
             if self.verbose:
                 message = f'Setup config: {self._read_config}'
@@ -165,12 +167,12 @@ class Device:
 
         # read data
         self.device.read()
-        self._wait_read()
+        self._wait(timeout)
 
         # block
         if blocking:
             while self._measurement.progress < 1:
-                time.sleep(1e-3*timeout)
+                self._wait(timeout)
 
             storage = self._measurement.storage
 
@@ -255,14 +257,9 @@ class Device:
             raise SetupDeviceError('Setup a device before!')
 
     # --------        private        --------
-    def _wait_set_exposure(self, duration: MilliSecond) -> None:
-        # FIXME: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
-        duration = self._device_config.change_exposure_delay
-
-        time.sleep(1e-3*duration)  # delay after exposure update
-
-    def _wait_read(self, duration: MilliSecond = 1000) -> None:
-        time.sleep(1e-3*duration)  # delay after read
+    @staticmethod
+    def _wait(duration: MilliSecond) -> None:
+        time.sleep(1e-3*duration)
 
     def __repr__(self) -> str:
         cls = self.__class__
