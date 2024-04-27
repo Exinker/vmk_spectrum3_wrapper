@@ -9,6 +9,9 @@ import numpy as np
 from vmk_spectrum3_wrapper.exception import SetupDeviceError
 from vmk_spectrum3_wrapper.typing import MicroSecond, MilliSecond
 
+from .utils import to_microsecond
+from .validators import validate_capacity, validate_exposure
+
 
 class BaseSchema(ABC):
 
@@ -124,27 +127,3 @@ def fetch_schema(exposure, capacity):
         return ExtendedSchema(exposure, capacity)
 
     raise ValueError
-
-
-# --------        utils        --------
-def to_microsecond(__exposure: MilliSecond) -> MicroSecond:
-    return int(np.round(1000 * __exposure).astype(int))
-
-
-# --------        validators        --------
-def validate_exposure(exposure: MilliSecond) -> None:
-
-    if not isinstance(exposure, (int, float)):
-        raise SetupDeviceError('Время экспозиции должно быть числом!')
-    if not exposure > 0:
-        raise SetupDeviceError('Время экспозиции должно быть положительным числом!')
-    if not to_microsecond(exposure) % 100 == 0:
-        raise SetupDeviceError('Время экспозиции должно быть кратным 100 мкс!')
-
-
-def validate_capacity(capacity: int) -> None:
-
-    if not isinstance(capacity, int):
-        raise SetupDeviceError('Количество накоплений должно быть целым числом!')
-    if not (capacity > 0 and capacity < 2**24):
-        raise SetupDeviceError('Количество накоплений должно быть числом с диапазоне [1; 2**24 - 1]!')
