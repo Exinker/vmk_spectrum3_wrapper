@@ -9,7 +9,6 @@ from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
 from vmk_spectrum3_wrapper.filter import F
 from vmk_spectrum3_wrapper.measurement.measurement import fetch_measurement
-from vmk_spectrum3_wrapper.measurement.schema import ExtendedSchema, StandardSchema
 from vmk_spectrum3_wrapper.typing import Array, Digit, IP, MilliSecond
 
 
@@ -125,14 +124,9 @@ class Device:
             return self
 
         # setup device
-        schema = self._measurement.schema
-
         try:
-            if isinstance(schema, StandardSchema):
-                self.device.set_read_config(ps3.ReadConfig(ps3.DefaultCopyPipeFilter()))  # ?
-                self.device.set_measurement(ps3.Measurement(ps3.Exposure(schema.exposure * 1000), schema.capacity, 0))
-            if isinstance(schema, ExtendedSchema):
-                self.device.set_double_exposure(*schema)
+            self.device.set_read_config(ps3.ReadConfig(ps3.DefaultCopyPipeFilter()))  # TODO: где описание?
+            self.device.set_measurement(ps3.Measurement(*self._measurement))
 
         except ps3.DriverException as error:
             eprint(message=message, error=error)
@@ -140,7 +134,7 @@ class Device:
 
         else:
             self._wait(
-                duration=self._device_config.change_exposure_delay  # FIXME: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
+                duration=self._device_config.change_exposure_delay  # TODO: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
             )
 
             if self.verbose:

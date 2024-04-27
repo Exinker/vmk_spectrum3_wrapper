@@ -1,11 +1,13 @@
 import time
-from typing import overload
+from typing import Iterator, overload
+
+import pyspectrum3 as ps3
 
 from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.filter import F
 from vmk_spectrum3_wrapper.typing import Array, MilliSecond
 
-from .schema import Schema, fetch_schema
+from .schema import ExtendedSchema, Schema, StandardSchema, fetch_schema
 from .storage import Storage
 
 
@@ -82,6 +84,17 @@ class Measurement:
 
         #
         return Data.squeeze(self.storage.pull())
+
+    # --------        private        --------
+    def __iter__(self) -> Iterator:
+
+        if isinstance(self.schema, StandardSchema):
+            return iter([
+                ps3.Exposure(self.schema.exposure * 1000), self.capacity_total, 0
+            ])
+
+        if isinstance(self.schema, ExtendedSchema):
+            raise NotImplementedError
 
 
 # --------        factory        --------
