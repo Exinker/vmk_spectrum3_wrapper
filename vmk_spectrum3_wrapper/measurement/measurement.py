@@ -11,13 +11,17 @@ from .storage import Storage
 
 class Measurement:
 
-    def __init__(self, schema: Schema, storage: Storage):
+    def __init__(self, n_times: int, schema: Schema, storage: Storage):
+        self._n_times = n_times
         self._schema = schema
         self._storage = storage
 
-        self._n_iters = None
         self._started_at = None
         self._finished_at = None
+
+    @property
+    def n_times(self) -> int | None:
+        return self._n_times
 
     @property
     def schema(self) -> Schema:
@@ -28,34 +32,27 @@ class Measurement:
         return self._storage
 
     @property
-    def n_iters(self) -> int | None:
-        return self._n_iters
-
-    @property
     def progress(self) -> float | None:
-        if self.n_iters is None:
+        if self.n_times is None:
             return None
 
-        return len(self.storage) / self.n_iters
+        return len(self.storage) / self.n_times
 
     @property
     def capacity_total(self) -> int:
         """Полное количество кадров."""
-        if self.n_iters is None:
+        if self.n_times is None:
             return None
 
-        return self.n_iters * self.schema.capacity_total
+        return self.n_times * self.schema.capacity_total
 
     @property
     def duration_total(self) -> MilliSecond | None:
         """Полное время измерения."""
-        if self.n_iters is None:
+        if self.n_times is None:
             return None
 
-        return self.n_iters * self.schema.duration_total
-
-    def setup(self, n_iters: int) -> None:
-        self._n_iters = n_iters
+        return self.n_times * self.schema.duration_total
 
     def put(self, frame: Array[int]) -> None:
         """Добавить новый `frame` в `storage`."""
@@ -82,11 +79,12 @@ class Measurement:
 
 # --------        factory        --------
 @overload
-def fetch_measurement(exposure: MilliSecond, capacity: int, handler: F | None = None) -> Measurement: ...
+def fetch_measurement(n_times: int, exposure: MilliSecond, capacity: int, handler: F | None = None) -> Measurement: ...
 @overload
-def fetch_measurement(exposure: tuple[MilliSecond, MilliSecond], capacity: tuple[int, int], handler: F | None = None) -> Measurement: ...
-def fetch_measurement(exposure, capacity, handler):
+def fetch_measurement(n_times: int, exposure: tuple[MilliSecond, MilliSecond], capacity: tuple[int, int], handler: F | None = None) -> Measurement: ...
+def fetch_measurement(n_times, exposure, capacity, handler):
     return Measurement(
+        n_times=n_times,
         schema=fetch_schema(exposure, capacity),
         storage=Storage(exposure, capacity, handler),
     )

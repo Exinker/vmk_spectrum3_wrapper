@@ -104,11 +104,12 @@ class Device:
 
         return self
 
-    def setup(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int] = 1, handler: F | None = None) -> 'Device':
+    def setup(self, n_times: int, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int] = 1, handler: F | None = None) -> 'Device':
         """Setup device to read."""
         message = 'Device is not ready to setup!'
 
         self._measurement = fetch_measurement(
+            n_times=n_times,
             exposure=exposure,
             capacity=capacity,
             handler=handler,
@@ -146,7 +147,7 @@ class Device:
 
         return self
 
-    def read(self, n_iters: int, blocking: bool = True, timeout: MilliSecond = 10) -> Data | None:
+    def read(self, blocking: bool = True, timeout: MilliSecond = 10) -> Data | None:
         """Прочитать `n_iters` раз и вернуть данные (blocking), или прочитать `n_iters` раз в `storage` (non blocking)."""
 
         # pass checks
@@ -161,9 +162,6 @@ class Device:
                 error=error,
             )
             return None
-
-        # setup measurement
-        self._measurement.setup(n_iters)
 
         # read data
         self.device.read()
