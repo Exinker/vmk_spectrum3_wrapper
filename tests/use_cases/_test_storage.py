@@ -24,7 +24,7 @@ def test_read_storage(device: Device, exposure: MilliSecond = 4):
     )
     data = device.read()
 
-    assert n_times == data.n_times
+    assert data.n_times == n_times
 
 
 def test_read_buffer_storage(device: Device, exposure: MilliSecond = 4, capacity: int = 100):
@@ -44,4 +44,4 @@ def test_read_buffer_storage(device: Device, exposure: MilliSecond = 4, capacity
 
     data = device.read()
 
-    assert n_times == data.n_times
+    assert data.n_times == n_times

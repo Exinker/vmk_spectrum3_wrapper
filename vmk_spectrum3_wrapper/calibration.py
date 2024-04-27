@@ -24,6 +24,7 @@ def calibrate_dark(
     """Calibrate device by dark signal."""
 
     device = device.setup(
+        n_times=1,
         exposure=exposure,
         capacity=capacity,
         handler={
@@ -34,7 +35,7 @@ def calibrate_dark(
             ]),
         }.get(type(capacity)),
     )
-    dark = device.read(1)
+    dark = device.read()
 
     # show
     if show:
@@ -61,13 +62,14 @@ def calibrate_bias(
     data = []
     for tau in tqdm(exposure):
         device = device.setup(
+            n_times=1,
             exposure=tau.item(),
             capacity=capacity,
             handler=StandardIntegrationPreset(
                 units=units,
             ),
         )
-        datum = device.read(1)
+        datum = device.read()
 
         #
         data.append(datum)

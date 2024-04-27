@@ -142,7 +142,7 @@ class Device:
 
         return self
 
-    def read(self, blocking: bool = True, timeout: MilliSecond = 10) -> Data | None:
+    def read(self, blocking: bool = True, timeout: MilliSecond = 100) -> Data | None:
         """Прочитать и вернуть данные (blocking), или прочитать в `storage` (non blocking)."""
 
         # pass checks

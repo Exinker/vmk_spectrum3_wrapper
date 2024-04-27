@@ -42,4 +42,4 @@ def test_calibrate_dark(device: Device, exposure: MilliSecond = 4):
 
     data = device.read()
 
-    assert n_times == data.n_times
+    assert data.n_times == n_times
