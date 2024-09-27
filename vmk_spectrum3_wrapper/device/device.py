@@ -1,56 +1,88 @@
 import time
 from collections.abc import Sequence
-from typing import Mapping
+from typing import Callable, Mapping
 
+import numpy as np
 import pyspectrum3 as ps3
 
 from vmk_spectrum3_wrapper.data import Data, DataMeta
+from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, DeviceConfigManual
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
 from vmk_spectrum3_wrapper.filter import F
 from vmk_spectrum3_wrapper.measurement import fetch_measurement
 from vmk_spectrum3_wrapper.typing import Array, Digit, IP, MilliSecond
 
-from .config import DeviceConfig, DeviceConfigAuto, DeviceConfigManual
 
+class DeviceFactory:
 
-def _create_device(config: DeviceConfig) -> 'Device':
-    """Create device by config and initialize."""
-    device = ps3.DeviceManager()
+    def __init__(
+        self,
+        on_context: Callable[[ps3.AssemblyContext], None] | None = None,
+        on_status: Callable[[Mapping[IP, ps3.AssemblyStatus]], None] | None = None,
+        on_error: Callable[[ps3.AsyncDriverException], None] | None = None,
+    ) -> None:
 
-    if isinstance(config, DeviceConfigAuto):
-        device.initialize(
-            ps3.AutoConfig().config(),
-        )
+        self.on_context = on_context
+        self.on_status = on_status
+        self.on_error = on_error
+
+    def create(self, config: DeviceConfig) -> 'Device':
+        """Create device by config and initialize it."""
+
+        device = self._create(config=config)
+
+        if self.on_context:
+            device.set_context_callback(self.on_context)
+        if self.on_status:
+            device.set_status_callback(self.on_status)
+        if self.on_error:
+            device.set_error_callback(self.on_error)
+
         return device
 
-    if isinstance(config, DeviceConfigManual):
-        device.initialize(
-            ps3.DeviceConfigFile([ps3.AssemblyConfigFile(ip) for ip in config.ip]),
-        )
-        return device
+    def _create(self, config: DeviceConfig) -> 'Device':
 
-    raise ValueError(f'Device {type(config).__name__} is not supported yet!')
+        device = ps3.DeviceManager()
+
+        if isinstance(config, DeviceConfigAuto):
+            device.initialize(
+                ps3.AutoConfig().config(),
+            )
+            return device
+
+        if isinstance(config, DeviceConfigManual):
+            device.initialize(
+                ps3.DeviceConfigFile([ps3.AssemblyConfigFile(ip) for ip in config.ip]),
+            )
+            return device
+
+        raise ValueError(f'Device {type(config).__name__} is not supported yet!')
 
 
 class Device:
 
-    def __init__(self, config: DeviceConfig | None = None, verbose: bool = False) -> None:
+    def __init__(
+        self,
+        config: DeviceConfig | None = None,
+        verbose: bool = False,
+    ) -> None:
 
-        # config
-        self.config = config or DeviceConfigAuto()
-
-        # device
-        device = _create_device(self.config)
-        device.set_context_callback(self._on_context)
-        device.set_status_callback(self._on_status)
-        device.set_error_callback(self._on_error)
-
-        self._device = device
+        self._config = config or DeviceConfigAuto()
+        self._device = DeviceFactory(
+            on_context=self._on_context,
+            on_status=self._on_status,
+            on_error=self._on_error,
+        ).create(
+            config=self.config,
+        )
         self._status = None
         self._is_connected = False
 
-        #
         self.verbose = verbose
+
+    @property
+    def config(self) -> DeviceConfig:
+        return self._config
 
     @property
     def device(self) -> 'Device':
@@ -109,7 +141,13 @@ class Device:
 
         return self
 
-    def setup(self, n_times: int, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int] = 1, handler: F | None = None) -> 'Device':
+    def setup(
+        self,
+        n_times: int,
+        exposure: MilliSecond | tuple[MilliSecond, MilliSecond],
+        capacity: int | tuple[int, int] = 1,
+        handler: F | None = None,
+    ) -> 'Device':
         """Setup device to read."""
         message = 'Device is not ready to setup!'
 
@@ -131,7 +169,7 @@ class Device:
 
         # setup device
         try:
-            self.device.set_read_config(ps3.ReadConfig(ps3.DefaultCopyPipeFilter()))  # TODO: где описание?
+            self.device.set_pipe_filter(ps3.DefaultCopyPipeFilter.instance())
             self.device.set_measurement(ps3.Measurement(*self._measurement))
 
         except ps3.DriverException as error:
@@ -207,25 +245,24 @@ class Device:
 
     # --------        callbacks        --------
     def _on_context(self, context: ps3.AssemblyContext) -> None:
-        self._on_frame(context.raw_frame)
+        self._on_frame(
+            frame=np.array(context.result),
+        )
 
     def _on_frame(self, frame: Array[Digit]) -> None:
         self._measurement.put(frame)
 
-        # verbose
         if self.verbose:
             print('on_frame:', len(frame), frame, flush=True)
 
     def _on_status(self, status: Mapping[IP, ps3.AssemblyStatus]) -> None:
         self._status = status
 
-        # verbose
         if self.verbose:
             print('on_status:', status, flush=True)
 
     def _on_error(self, error: ps3.AsyncDriverException) -> None:
 
-        # verbose
         if self.verbose:
             print('on_error:', type(error), error, flush=True)
 
