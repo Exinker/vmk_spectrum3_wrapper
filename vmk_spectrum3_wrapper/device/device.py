@@ -187,13 +187,17 @@ class Device:
 
         return self
 
-    def read(self, blocking: bool = True, timeout: MilliSecond = 100) -> Data | None:
+    def read(
+        self,
+        blocking: bool = True,
+        timeout: MilliSecond = 100,
+    ) -> Data | None:
         """Прочитать и вернуть данные (blocking), или прочитать в `storage` (non blocking)."""
 
         # pass checks
         try:
             self._check_connection()
-            self._check_status(ps3.AssemblyStatus.ALIVE)
+            # self._check_status(ps3.AssemblyStatus.ALIVE)  # TODO: по какой-то причине должго не приходит статус ps3.AssemblyStatus.ALIVE
             self._check_measurement()
 
         except DeviceError as error:
