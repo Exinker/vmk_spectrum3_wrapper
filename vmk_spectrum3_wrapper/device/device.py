@@ -92,26 +92,21 @@ class Device:
     def status(self) -> Mapping[IP, ps3.AssemblyStatus] | None:
         return self._status
 
-    # --------        handler        --------
     def connect(self) -> 'Device':
         """Connect to device."""
-        message = 'Device is not ready to connect!'
+        emessage = 'Device is not ready to connect!'
 
-        # pass checks
         try:
             self._check_connection(state=False)
-
         except DeviceError as error:
-            eprint(message=message, error=error)
+            eprint(message=emessage, error=error)
+
             return self
 
-        # connect
         try:
             self.device.connect()
-
         except ps3.DriverException as error:
-            eprint(message=message, error=error)
-
+            eprint(message=emessage, error=error)
         else:
             self._is_connected = True
 
@@ -119,23 +114,19 @@ class Device:
 
     def disconnect(self) -> 'Device':
         """Disconnect from device."""
-        message = 'Device is not ready to disconnect!'
+        emessage = 'Device is not ready to disconnect!'
 
-        # pass checks
         try:
             self._check_connection(state=True)
-
         except DeviceError as error:
-            eprint(message=message, error=error)
+            eprint(message=emessage, error=error)
+
             return self
 
-        # disconnect
         try:
             self.device.disconnect()
-
         except ps3.DriverException as error:
-            eprint(message=message, error=error)
-
+            eprint(message=emessage, error=error)
         else:
             self._is_connected = False
 
@@ -149,7 +140,7 @@ class Device:
         handler: F | None = None,
     ) -> 'Device':
         """Setup device to read."""
-        message = 'Device is not ready to setup!'
+        emessage = 'Device is not ready to setup!'
 
         self._measurement = Measurement.create(
             n_times=n_times,
@@ -158,32 +149,28 @@ class Device:
             handler=handler,
         )
 
-        # pass checks
         try:
             self._check_connection()
             self._check_status(ps3.AssemblyStatus.ALIVE)
-
         except DeviceError as error:
-            eprint(message=message, error=error)
+            eprint(message=emessage, error=error)
+
             return self
 
-        # setup device
         try:
             self.device.set_pipe_filter(ps3.DefaultCopyPipeFilter.instance())
             self.device.set_measurement(ps3.Measurement(*self._measurement))
-
         except ps3.DriverException as error:
-            eprint(message=message, error=error)
-            return self
+            eprint(message=emessage, error=error)
 
+            return self
         else:
             self._wait(
-                duration=self.config.change_exposure_delay  # TODO: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
+                duration=self.config.change_exposure_delay,  # TODO: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
             )
-
             if self.verbose:
-                message = f'Setup: {self._measurement}'
-                print(message)
+                emessage = f'Setup: {self._measurement}'
+                print(emessage)
 
         return self
 

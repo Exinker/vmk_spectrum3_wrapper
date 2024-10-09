@@ -4,11 +4,12 @@ from typing import Iterator, overload
 import pyspectrum3 as ps3
 
 from vmk_spectrum3_wrapper.data import Data
+from vmk_spectrum3_wrapper.exception import SetupDeviceError
 from vmk_spectrum3_wrapper.filter import F
+from vmk_spectrum3_wrapper.measurement.exceptions import SchemaError
+from vmk_spectrum3_wrapper.measurement.schema import ExtendedSchema, Schema, StandardSchema, schema_factory
+from vmk_spectrum3_wrapper.measurement.storage import Storage
 from vmk_spectrum3_wrapper.types import Array, MilliSecond
-
-from .schema import BaseSchema, ExtendedSchema, Schema, StandardSchema
-from .storage import Storage
 
 
 @overload
@@ -16,9 +17,15 @@ def measurement_factory(n_times: int, exposure: MilliSecond, capacity: int, hand
 @overload
 def measurement_factory(n_times: int, exposure: tuple[MilliSecond, MilliSecond], capacity: tuple[int, int], handler: F | None = None) -> 'Measurement': ...
 def measurement_factory(n_times, exposure, capacity, handler):
+
+    try:
+        schema = schema_factory(exposure, capacity)
+    except SchemaError as error:
+        raise SetupDeviceError from error
+
     return Measurement(
         n_times=n_times,
-        schema=BaseSchema.create(exposure, capacity),
+        schema=schema,
         storage=Storage(exposure, capacity, handler),
     )
 
