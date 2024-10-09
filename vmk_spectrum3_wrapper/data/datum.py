@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from vmk_spectrum3_wrapper.typing import Array, U
+from vmk_spectrum3_wrapper.types import Array, U
 from vmk_spectrum3_wrapper.units import Units
 
 from .base_data import BaseData
@@ -11,8 +11,8 @@ class Datum(BaseData):
 
     def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None):
         super().__init__(
-            intensity=reshape(intensity),
             units=units,
+            intensity=reshape(intensity),
             clipped=reshape(clipped),
             deviation=reshape(deviation),
         )
@@ -48,8 +48,8 @@ class Datum(BaseData):
         cls = self.__class__
 
         return cls(
-            intensity=crop(self.intensity, index),
             units=self.units,
+            intensity=crop(self.intensity, index),
             clipped=crop(self.clipped, index),
             deviation=crop(self.deviation, index),
         )

@@ -3,7 +3,7 @@ from typing import overload
 
 import numpy as np
 
-from vmk_spectrum3_wrapper.typing import Array, U
+from vmk_spectrum3_wrapper.types import Array, U
 
 
 @overload

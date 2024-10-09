@@ -7,13 +7,30 @@ from typing import Iterator, TypeAlias, overload
 import numpy as np
 
 from vmk_spectrum3_wrapper.exception import SetupDeviceError
-from vmk_spectrum3_wrapper.typing import MicroSecond, MilliSecond
+from vmk_spectrum3_wrapper.types import MicroSecond, MilliSecond
 
 from .utils import to_microsecond
 from .validators import validate_capacity, validate_exposure
 
 
+@overload
+def schema_factory(exposure: MilliSecond, capacity: int) -> 'StandardSchema': ...
+@overload
+def schema_factory(exposure: Sequence[MilliSecond, MilliSecond], capacity: Sequence[int, int]) -> 'ExtendedSchema': ...
+def schema_factory(exposure, capacity):
+
+    if isinstance(exposure, (int, float)):
+        return StandardSchema(exposure, capacity)
+
+    if isinstance(exposure, Sequence):
+        return ExtendedSchema(exposure, capacity)
+
+    raise ValueError
+
+
 class BaseSchema(ABC):
+
+    create = schema_factory
 
     @abstractproperty
     def duration_total(self) -> MilliSecond:
@@ -111,19 +128,3 @@ class ExtendedSchema(BaseSchema):
 
 
 Schema: TypeAlias = StandardSchema | ExtendedSchema
-
-
-# --------        factory        --------
-@overload
-def fetch_schema(exposure: MilliSecond, capacity: int) -> StandardSchema: ...
-@overload
-def fetch_schema(exposure: Sequence[MilliSecond, MilliSecond], capacity: Sequence[int, int]) -> ExtendedSchema: ...
-def fetch_schema(exposure, capacity):
-
-    if isinstance(exposure, (int, float)):
-        return StandardSchema(exposure, capacity)
-
-    if isinstance(exposure, Sequence):
-        return ExtendedSchema(exposure, capacity)
-
-    raise ValueError

@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum
-from vmk_spectrum3_wrapper.typing import MilliSecond
+from vmk_spectrum3_wrapper.types import MilliSecond
 
 from .filter import AbstractFilter
 from .switch_filter import split_shots
@@ -29,8 +29,8 @@ class StandardIntegrationFilter(IntegrationFilter):
         deviation = np.sqrt(np.sum(datum.deviation**2, axis=0)/factor) if isinstance(datum.deviation, np.ndarray) else None
 
         return Datum(
-            intensity=intensity,
             units=datum.units,
+            intensity=intensity,
             clipped=clipped,
             deviation=deviation,
         )
@@ -75,8 +75,8 @@ class HighDynamicRangeIntegrationFilter(IntegrationFilter):
 
         #
         return Datum(
-            intensity=intensity,
             units=datum.units,
+            intensity=intensity,
             clipped=clipped,
             deviation=deviation,
         )

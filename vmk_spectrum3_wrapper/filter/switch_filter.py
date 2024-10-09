@@ -68,8 +68,8 @@ def merge_shots(shots: Sequence[Datum]) -> Datum:
             print(f'short({i}): {shot.n_times}x{shot.n_numbers}', shot.intensity, shot.clipped)
 
     return Datum(
-        intensity=inner([shot.intensity for shot in shots]),
         units=shots[0].units,
+        intensity=inner([shot.intensity for shot in shots]),
         clipped=inner([shot.clipped for shot in shots]),
         deviation=inner([shot.deviation for shot in shots]),
     )

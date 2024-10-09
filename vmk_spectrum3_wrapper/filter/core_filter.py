@@ -9,7 +9,7 @@ from vmk_spectrum3_wrapper.data import Data, Datum
 from vmk_spectrum3_wrapper.detector import Detector
 from vmk_spectrum3_wrapper.noise import Noise
 from vmk_spectrum3_wrapper.shuffle import Shuffle
-from vmk_spectrum3_wrapper.typing import Array, Digit, U
+from vmk_spectrum3_wrapper.types import Array, Digit, U
 from vmk_spectrum3_wrapper.units import Units
 
 from .filter import AbstractFilter
@@ -58,8 +58,8 @@ class ShuffleFilter(CoreFilter):
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
 
         return Datum(
-            intensity=self.kernel(datum.intensity),
             units=datum.units,
+            intensity=self.kernel(datum.intensity),
             clipped=self.kernel(datum.clipped),
             deviation=self.kernel(datum.deviation),
         )
@@ -80,8 +80,8 @@ class ClipFilter(CoreFilter):
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
 
         return Datum(
-            intensity=datum.intensity,
             units=datum.units,
+            intensity=datum.intensity,
             clipped=self.kernel(datum.intensity),
             deviation=datum.deviation,
         )
@@ -113,8 +113,8 @@ class ScaleFilter(CoreFilter):
         assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
 
         return Datum(
-            intensity=self.kernel(datum.intensity),
             units=self.units,
+            intensity=self.kernel(datum.intensity),
             clipped=datum.clipped,
             deviation=self.kernel(datum.deviation),
         )
@@ -162,8 +162,8 @@ class OffsetFilter(CoreFilter):
         assert datum.n_numbers == self.offset.n_numbers
 
         return Datum(
-            intensity=self.kernel(datum.intensity, kind='intensity'),
             units=datum.units,
+            intensity=self.kernel(datum.intensity, kind='intensity'),
             clipped=self.kernel(datum.clipped, kind='clipped'),
             deviation=self.kernel(datum.deviation, kind='deviation'),
         )

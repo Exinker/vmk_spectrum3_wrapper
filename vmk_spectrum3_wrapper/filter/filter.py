@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from vmk_spectrum3_wrapper.typing import Array, U
+from vmk_spectrum3_wrapper.types import Array, U
 
 
 class AbstractFilter(ABC):

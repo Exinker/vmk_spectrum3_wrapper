@@ -1,6 +1,6 @@
 from typing import overload
 
-from vmk_spectrum3_wrapper.typing import Array, Digit
+from vmk_spectrum3_wrapper.types import Array, Digit
 
 
 class Shuffle:

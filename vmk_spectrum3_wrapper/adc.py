@@ -8,7 +8,7 @@ Author: Vaschenko Pavel
 from dataclasses import dataclass
 from enum import Enum
 
-from vmk_spectrum3_wrapper.typing import Digit
+from vmk_spectrum3_wrapper.types import Digit
 
 
 @dataclass(frozen=True)

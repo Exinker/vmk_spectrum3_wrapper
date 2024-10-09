@@ -5,10 +5,22 @@ import pyspectrum3 as ps3
 
 from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.filter import F
-from vmk_spectrum3_wrapper.typing import Array, MilliSecond
+from vmk_spectrum3_wrapper.types import Array, MilliSecond
 
-from .schema import ExtendedSchema, Schema, StandardSchema, fetch_schema
+from .schema import BaseSchema, ExtendedSchema, Schema, StandardSchema
 from .storage import Storage
+
+
+@overload
+def measurement_factory(n_times: int, exposure: MilliSecond, capacity: int, handler: F | None = None) -> 'Measurement': ...
+@overload
+def measurement_factory(n_times: int, exposure: tuple[MilliSecond, MilliSecond], capacity: tuple[int, int], handler: F | None = None) -> 'Measurement': ...
+def measurement_factory(n_times, exposure, capacity, handler):
+    return Measurement(
+        n_times=n_times,
+        schema=BaseSchema.create(exposure, capacity),
+        storage=Storage(exposure, capacity, handler),
+    )
 
 
 class Measurement:
@@ -18,6 +30,8 @@ class Measurement:
         `schema` - схема измерения;
         `storage` - хранилище данных.
     """
+
+    create = measurement_factory
 
     def __init__(self, n_times: int, schema: Schema, storage: Storage):
         self._n_times = n_times
@@ -100,16 +114,3 @@ class Measurement:
             return iter([
                 ps3.Exposure(ps3.DoubleTimer(*self.schema)), self.capacity_total, 0,
             ])
-
-
-# --------        factory        --------
-@overload
-def fetch_measurement(n_times: int, exposure: MilliSecond, capacity: int, handler: F | None = None) -> Measurement: ...
-@overload
-def fetch_measurement(n_times: int, exposure: tuple[MilliSecond, MilliSecond], capacity: tuple[int, int], handler: F | None = None) -> Measurement: ...
-def fetch_measurement(n_times, exposure, capacity, handler):
-    return Measurement(
-        n_times=n_times,
-        schema=fetch_schema(exposure, capacity),
-        storage=Storage(exposure, capacity, handler),
-    )

@@ -4,7 +4,7 @@ from vmk_spectrum3_wrapper.calibration import calibrate_dark
 from vmk_spectrum3_wrapper.device import Device
 from vmk_spectrum3_wrapper.filter import OffsetFilter, PipeFilter, ScaleFilter, StandardIntegrationFilter
 from vmk_spectrum3_wrapper.storage import BufferStorage
-from vmk_spectrum3_wrapper.typing import MilliSecond
+from vmk_spectrum3_wrapper.types import MilliSecond
 
 
 @pytest.fixture

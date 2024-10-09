@@ -1,11 +1,12 @@
-import pickle
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+import pickle
+from typing import Any, Mapping
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from vmk_spectrum3_wrapper.typing import Array, U
+from vmk_spectrum3_wrapper.types import Array, U
 from vmk_spectrum3_wrapper.units import Units
 
 from .meta import DataMeta
@@ -14,7 +15,14 @@ from .utils import crop, join, reshape
 
 class BaseData(ABC):
 
-    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: DataMeta | None = None):
+    def __init__(
+        self,
+        intensity: Array[U],
+        units: Units,
+        clipped: Array[bool] | None = None,
+        deviation: Array[bool] | None = None,
+        meta: DataMeta | None = None,
+    ):
         self.intensity = intensity
         self.units = units
         self.clipped = clipped
@@ -41,23 +49,36 @@ class BaseData(ABC):
     def number(self) -> Array[int]:
         return np.arange(self.n_numbers)
 
-    # --------        handler        --------
     @abstractmethod
     def show(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def dumps(self) -> Mapping[str, Any]:
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
+    def loads(cls, dat: Mapping[str, Any]) -> 'BaseData':
         raise NotImplementedError
 
 
 class Datum(BaseData):
 
-    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None):
+    def __init__(
+        self,
+        units: Units,
+        intensity: Array[U],
+        clipped: Array[bool] | None = None,
+        deviation: Array[bool] | None = None,
+    ):
         super().__init__(
-            intensity=reshape(intensity),
             units=units,
+            intensity=reshape(intensity),
             clipped=reshape(clipped),
             deviation=reshape(deviation),
         )
 
-    # --------        handler        --------
     def show(self) -> None:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
 
@@ -76,20 +97,45 @@ class Datum(BaseData):
                     color='red', linestyle='none', marker='.', markersize=2,
                 )
 
-        #
         plt.xlabel('Номер отсчета')
         plt.ylabel('Интенсивность, отн. ед.')
 
         plt.show()
 
-    # --------        private        --------
+    def dumps(self) -> Mapping[str, Any]:
+
+        dat = {
+            'units': str(self.units),
+            'intensity': pickle.dumps(self.intensity),
+            'clipped': pickle.dumps(self.clipped),
+            'deviation': pickle.dumps(self.deviation),
+        }
+        return dat
+
+    @classmethod
+    def loads(cls, dat: Mapping[str, Any]) -> 'Datum':
+
+        units = {
+            'Units.digit': Units.digit,
+            'Units.percent': Units.percent,
+            'Units.electron': Units.electron,
+        }.get(dat.get('units'), Units.percent)
+
+        datum = cls(
+            units=units,
+            intensity=pickle.loads(dat.get('intensity')),
+            clipped=pickle.loads(dat.get('clipped')),
+            deviation=pickle.loads(dat.get('deviation')),
+        )
+        return datum
+
     def __getitem__(self, index: tuple[int | Array[int] | slice, int | Array[int] | slice]) -> 'BaseData':
         """Итерировать по `index` вдоль времени и пространству."""
         cls = self.__class__
 
         return cls(
-            intensity=crop(self.intensity, index),
             units=self.units,
+            intensity=crop(self.intensity, index),
             clipped=crop(self.clipped, index),
             deviation=crop(self.deviation, index),
         )
@@ -97,19 +143,21 @@ class Datum(BaseData):
 
 class Data(BaseData):
 
-    def __init__(self, intensity: Array[U], units: Units, clipped: Array[bool] | None = None, deviation: Array[bool] | None = None, meta: DataMeta | None = None):
+    def __init__(
+        self,
+        intensity: Array[U],
+        units: Units,
+        clipped: Array[bool] | None = None,
+        deviation: Array[bool] | None = None,
+        meta: DataMeta | None = None,
+    ):
         super().__init__(
-            intensity=reshape(intensity),
             units=units,
+            intensity=reshape(intensity),
             clipped=reshape(clipped),
             deviation=reshape(deviation),
             meta=meta,
         )
-
-    # --------        handler        --------
-    def save(self, filepath: str | None = None) -> None:
-        with open(filepath, 'bw') as file:
-            pickle.dump(self, file)
 
     def show(self) -> None:
         fig, ax = plt.subplots(figsize=(6, 4), tight_layout=True)
@@ -129,7 +177,6 @@ class Data(BaseData):
                     color='red', linestyle='none', marker='.', markersize=2,
                 )
 
-        #
         plt.xlabel(r'Номер отсчета')
         plt.ylabel(r'Интенсивность, {units}'.format(
             units={
@@ -140,32 +187,74 @@ class Data(BaseData):
         ))
         plt.show()
 
-    # --------        fabric        --------
     @classmethod
-    def load(cls, filepath: str) -> 'Data':
-        with open(filepath, 'br') as file:
-            data = pickle.load(file)
+    def squeeze(
+        cls,
+        __items: Sequence[Datum],
+        meta: DataMeta,
+    ) -> 'Data':
 
-        return data
-
-    @classmethod
-    def squeeze(cls, __items: Sequence[Datum], meta: DataMeta) -> 'Data':
         return cls(
-            intensity=join([item.intensity for item in __items]),
             units=__items[0].units,
+            intensity=join([item.intensity for item in __items]),
             clipped=join([item.clipped for item in __items]),
             deviation=join([item.deviation for item in __items]),
             meta=meta,
         )
 
-    # --------        private        --------
-    def __getitem__(self, index: tuple[int | Array[int] | slice, int | Array[int] | slice]) -> 'BaseData':
+    def dumps(self) -> Mapping[str, Any]:
+
+        dat = {
+            'units': str(self.units),
+            'intensity': pickle.dumps(self.intensity),
+            'clipped': pickle.dumps(self.clipped),
+            'deviation': pickle.dumps(self.deviation),
+            'meta': self.meta.dumps() if self.meta else None,
+        }
+        return dat
+
+    def save(self, filepath: str | None = None) -> None:
+        dat = self.dumps()
+
+        with open(filepath, 'bw') as file:
+            pickle.dump(dat, file)
+
+    @classmethod
+    def loads(cls, dat: Mapping[str, Any]) -> 'Data':
+
+        units = {
+            'Units.digit': Units.digit,
+            'Units.percent': Units.percent,
+            'Units.electron': Units.electron,
+        }.get(dat.get('units'), Units.percent)
+
+        datum = cls(
+            units=units,
+            intensity=pickle.loads(dat.get('intensity')),
+            clipped=pickle.loads(dat.get('clipped')),
+            deviation=pickle.loads(dat.get('deviation')),
+            meta=DataMeta.loads(dat.get('meta')) if dat.get('meta') else None,
+        )
+        return datum
+
+    @classmethod
+    def load(cls, filepath: str) -> 'Data':
+        with open(filepath, 'br') as file:
+            dat = pickle.load(file)
+
+        data = cls.loads(dat)
+        return data
+
+    def __getitem__(
+        self,
+        index: tuple[int | Array[int] | slice, int | Array[int] | slice],
+    ) -> 'BaseData':
         """Итерировать по `index` вдоль времени и пространству."""
         cls = self.__class__
 
         return cls(
-            intensity=crop(self.intensity, index),
             units=self.units,
+            intensity=crop(self.intensity, index),
             clipped=crop(self.clipped, index),
             deviation=crop(self.deviation, index),
             meta=self.meta,

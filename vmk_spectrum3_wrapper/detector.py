@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from vmk_spectrum3_wrapper.typing import Electron, MicroMeter
+from vmk_spectrum3_wrapper.types import Electron, MicroMeter
 
 
 @dataclass(frozen=True)

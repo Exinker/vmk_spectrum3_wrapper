@@ -1,7 +1,7 @@
 import sys
 from typing import TextIO
 
-from vmk_spectrum3_wrapper.typing import Path
+from vmk_spectrum3_wrapper.types import Path
 
 
 # --------        device        --------

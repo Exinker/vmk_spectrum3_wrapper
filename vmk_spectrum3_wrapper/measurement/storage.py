@@ -6,7 +6,7 @@ import numpy as np
 from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.filter.pipe_filter import PipeFilter
 from vmk_spectrum3_wrapper.filter.preset import StandardIntegrationPreset
-from vmk_spectrum3_wrapper.typing import Array, MilliSecond, Second
+from vmk_spectrum3_wrapper.types import Array, MilliSecond, Second
 from vmk_spectrum3_wrapper.units import Units
 
 
@@ -99,8 +99,8 @@ class Storage:
             buffer = np.array(self.buffer)
 
             datum = Datum(
-                intensity=buffer,
                 units=Units.digit,
+                intensity=buffer,
             )
             datum = self.handler(datum, exposure=self.exposure, capacity=self.capacity)
 

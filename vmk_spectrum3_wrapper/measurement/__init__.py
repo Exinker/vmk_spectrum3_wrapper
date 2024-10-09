@@ -1,4 +1,4 @@
-from .measurement import Measurement, fetch_measurement
-from .schema import ExtendedSchema, Schema, StandardSchema, fetch_schema
+from .measurement import Measurement
+from .schema import ExtendedSchema, Schema, StandardSchema
 from .storage import Storage
 from .utils import to_microsecond

@@ -5,7 +5,7 @@ import numpy as np
 
 from vmk_spectrum3_wrapper.adc import ADC
 from vmk_spectrum3_wrapper.detector import Detector
-from vmk_spectrum3_wrapper.typing import Array, U
+from vmk_spectrum3_wrapper.types import Array, U
 from vmk_spectrum3_wrapper.units import Units
 
 

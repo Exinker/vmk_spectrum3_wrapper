@@ -4,7 +4,7 @@ from typing import TypeAlias
 
 from vmk_spectrum3_wrapper.adc import ADC
 from vmk_spectrum3_wrapper.detector import Detector
-from vmk_spectrum3_wrapper.typing import IP, MilliSecond
+from vmk_spectrum3_wrapper.types import IP, MilliSecond
 
 
 CHANGE_EXPOSURE_DELAY: MilliSecond = 1000

@@ -3,7 +3,7 @@ import pytest
 from vmk_spectrum3_wrapper.device import Device
 from vmk_spectrum3_wrapper.filter import PipeFilter, ScaleFilter, StandardIntegrationFilter
 from vmk_spectrum3_wrapper.storage import BufferStorage
-from vmk_spectrum3_wrapper.typing import MilliSecond
+from vmk_spectrum3_wrapper.types import MilliSecond
 
 
 @pytest.fixture

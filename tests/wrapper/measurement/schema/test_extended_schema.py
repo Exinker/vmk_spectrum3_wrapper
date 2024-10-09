@@ -2,7 +2,7 @@ import pytest
 
 from vmk_spectrum3_wrapper.exception import SetupDeviceError
 from vmk_spectrum3_wrapper.measurement import ExtendedSchema, to_microsecond
-from vmk_spectrum3_wrapper.typing import MilliSecond
+from vmk_spectrum3_wrapper.types import MilliSecond
 
 
 @pytest.fixture(params=[

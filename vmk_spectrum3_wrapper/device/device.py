@@ -9,8 +9,8 @@ from vmk_spectrum3_wrapper.data import Data, DataMeta
 from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, DeviceConfigManual
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
 from vmk_spectrum3_wrapper.filter import F
-from vmk_spectrum3_wrapper.measurement import fetch_measurement
-from vmk_spectrum3_wrapper.typing import Array, Digit, IP, MilliSecond
+from vmk_spectrum3_wrapper.measurement import Measurement
+from vmk_spectrum3_wrapper.types import Array, Digit, IP, MilliSecond
 
 
 class DeviceFactory:
@@ -151,7 +151,7 @@ class Device:
         """Setup device to read."""
         message = 'Device is not ready to setup!'
 
-        self._measurement = fetch_measurement(
+        self._measurement = Measurement.create(
             n_times=n_times,
             exposure=exposure,
             capacity=capacity,

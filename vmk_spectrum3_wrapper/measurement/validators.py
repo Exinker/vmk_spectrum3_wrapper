@@ -1,7 +1,7 @@
 import numpy as np
 
 from vmk_spectrum3_wrapper.exception import SetupDeviceError
-from vmk_spectrum3_wrapper.typing import MilliSecond
+from vmk_spectrum3_wrapper.types import MilliSecond
 
 from .utils import to_microsecond
 
