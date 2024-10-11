@@ -17,8 +17,8 @@ class BaseData(ABC):
 
     def __init__(
         self,
-        intensity: Array[U],
         units: Units,
+        intensity: Array[U],
         clipped: Array[bool] | None = None,
         deviation: Array[bool] | None = None,
         meta: DataMeta | None = None,
@@ -145,8 +145,8 @@ class Data(BaseData):
 
     def __init__(
         self,
-        intensity: Array[U],
         units: Units,
+        intensity: Array[U],
         clipped: Array[bool] | None = None,
         deviation: Array[bool] | None = None,
         meta: DataMeta | None = None,

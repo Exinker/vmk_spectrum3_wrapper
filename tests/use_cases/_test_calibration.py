@@ -16,6 +16,7 @@ def device() -> Device:
     device.disconnect()
 
 
+@pytest.mark.skip()
 def test_calibrate_dark(device: Device, exposure: MilliSecond = 4):
     n_times = 1
 

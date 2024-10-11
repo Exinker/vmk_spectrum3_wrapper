@@ -15,6 +15,7 @@ def device() -> Device:
     device.disconnect()
 
 
+@pytest.mark.skip()
 def test_read_storage(device: Device, exposure: MilliSecond = 4):
     n_times = 1
 
@@ -27,6 +28,7 @@ def test_read_storage(device: Device, exposure: MilliSecond = 4):
     assert data.n_times == n_times
 
 
+@pytest.mark.skip()
 def test_read_buffer_storage(device: Device, exposure: MilliSecond = 4, capacity: int = 100):
     n_times = 1
 

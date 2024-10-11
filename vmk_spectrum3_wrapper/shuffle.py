@@ -4,11 +4,11 @@ from vmk_spectrum3_wrapper.types import Array, Digit
 
 
 class Shuffle:
+    """Смещения и перестановок объект."""
 
     def __init__(self):
         pass
 
-    # --------        private        --------
     @overload
     def __call__(self, value: Array[Digit]) -> Array[Digit]: ...
     @overload

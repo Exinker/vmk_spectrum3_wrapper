@@ -5,11 +5,11 @@ import numpy as np
 from vmk_spectrum3_wrapper.config import DEBUG
 from vmk_spectrum3_wrapper.data import Datum
 
-from .filter import AbstractFilter
+from vmk_spectrum3_wrapper.filter.base_filter import FilterABC
 from .pipe_filter import PipeFilter
 
 
-class SwitchFilter(AbstractFilter):
+class SwitchFilter(FilterABC):
     """Фильт, разделяющий конвееры обработки данных на несколько (два)."""
 
     def __init__(self, filters: Sequence[PipeFilter]):

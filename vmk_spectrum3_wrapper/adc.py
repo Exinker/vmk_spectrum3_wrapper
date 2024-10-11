@@ -17,7 +17,6 @@ class ADCConfig:
     resolution: int
     log: bool
 
-    # --------        private        --------
     def __str__(self) -> str:
         cls = self.__class__
         resolution = self.resolution

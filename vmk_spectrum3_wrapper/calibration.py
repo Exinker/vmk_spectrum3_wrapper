@@ -87,8 +87,8 @@ def calibrate_bias(
         bias[n] = np.polyfit(exposure[mask], intensity[mask, n], deg=1)[1]
 
     bias = Data(
-        intensity=bias.reshape(1, -1),
         units=datum.units,
+        intensity=bias.reshape(1, -1),
         clipped=np.full(n_numbers, False),  # FIXME:
         deviation=np.full(n_numbers, 0),  # FIXME: calculate from polyfit
         meta=None,  # FIXME:

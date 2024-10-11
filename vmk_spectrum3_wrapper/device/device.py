@@ -6,7 +6,7 @@ import numpy as np
 import pyspectrum3 as ps3
 
 from vmk_spectrum3_wrapper.data import Data, DataMeta
-from vmk_spectrum3_wrapper.device.config import DeviceConfig, DeviceConfigAuto, DeviceConfigManual
+from vmk_spectrum3_wrapper.device.device_config import DeviceConfig, DeviceConfigAuto, DeviceConfigManual
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
 from vmk_spectrum3_wrapper.filter import F
 from vmk_spectrum3_wrapper.measurement import Measurement

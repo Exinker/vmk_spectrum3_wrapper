@@ -1,6 +1,6 @@
 from typing import NewType
 
-from .filter import AbstractFilter
+from vmk_spectrum3_wrapper.filter.base_filter import FilterABC
 
 
-F = NewType('F', AbstractFilter)
+F = NewType('F', FilterABC)

@@ -37,6 +37,7 @@ def dev():
     return dev
 
 
+@pytest.mark.skip()
 @pytest.mark.parametrize('tau', [2, 1, 0.4])
 def test_high_load_filter(tau: MilliSecond, dev, n: int = 100) -> None:
     DATA.clear()

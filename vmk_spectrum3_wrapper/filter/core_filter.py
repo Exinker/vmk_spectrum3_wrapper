@@ -4,18 +4,18 @@ from typing import Any, Literal, overload
 import numpy as np
 
 from vmk_spectrum3_wrapper.adc import ADC
-from vmk_spectrum3_wrapper.config import _ADC, _DETECTOR
+from vmk_spectrum3_wrapper.config import DEFAULT_ADC, DEFAULT_DETECTOR
 from vmk_spectrum3_wrapper.data import Data, Datum
 from vmk_spectrum3_wrapper.detector import Detector
+from vmk_spectrum3_wrapper.filter.base_filter import FilterABC
+from vmk_spectrum3_wrapper.filter.exceptions import DatumFilterError, FilterError
 from vmk_spectrum3_wrapper.noise import Noise
 from vmk_spectrum3_wrapper.shuffle import Shuffle
 from vmk_spectrum3_wrapper.types import Array, Digit, U
 from vmk_spectrum3_wrapper.units import Units
 
-from .filter import AbstractFilter
 
-
-class CoreFilter(AbstractFilter):
+class CoreFilterABC(FilterABC):
     """Базовый класс для основных фильтров (не снижающих размерность данных!)."""
 
     @abstractmethod
@@ -23,7 +23,7 @@ class CoreFilter(AbstractFilter):
         raise NotImplementedError
 
 
-class ShuffleFilter(CoreFilter):
+class ShuffleFilter(CoreFilterABC):
     """Смещения и перестановок фильтр."""
 
     def __new__(cls, shuffle: Shuffle | None):
@@ -33,7 +33,8 @@ class ShuffleFilter(CoreFilter):
         return super().__new__(cls)
 
     def __init__(self, shuffle: Shuffle):
-        assert isinstance(shuffle, Shuffle), f'Тип shuffle: {type(shuffle)} не поддерживается!'
+        if not isinstance(shuffle, Shuffle):
+            raise FilterError(f'{self.__class__.__name__} is not support shuffle: {type(shuffle)}!')
 
         self._shuffle = shuffle
 
@@ -53,9 +54,9 @@ class ShuffleFilter(CoreFilter):
 
         return self.shuffle(value)
 
-    # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
-        assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
+        if not (datum.units == Units.digit):
+            raise DatumFilterError(f'{datum.units} is not valid! Only `digit` is supported!')
 
         return Datum(
             units=datum.units,
@@ -65,19 +66,25 @@ class ShuffleFilter(CoreFilter):
         )
 
 
-class ClipFilter(CoreFilter):
+class ClipFilter(CoreFilterABC):
     """Маскирование зашкаленных отсчетов фильтр."""
 
-    def __init__(self, adc: ADC | None = None):
-        self.adc = adc or _ADC  # TODO:
-        self.value_max = self.adc.value_max
+    def __init__(self, adc: ADC = DEFAULT_ADC):
+        if not (adc == DEFAULT_ADC):
+            raise FilterError('Change `DEFAULT_ADC` in config file instead!')
+
+        self.adc = adc
+
+    @property
+    def value_max(self) -> int:
+        return self.adc.value_max
 
     def kernel(self, value: Array[Digit]) -> Array[bool]:
         return value == self.value_max
 
-    # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
-        assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
+        if not (datum.units == Units.digit):
+            raise DatumFilterError(f'{datum.units} is not valid! Only `digit` is supported!')
 
         return Datum(
             units=datum.units,
@@ -87,16 +94,19 @@ class ClipFilter(CoreFilter):
         )
 
 
-class ScaleFilter(CoreFilter):
+class ScaleFilter(CoreFilterABC):
     """Масштабирования фильтр. Перевод из `Units.digit` в `units`."""
 
-    def __init__(self, units: Units | None = None):
-        self._units = units or Units.percent
-        self._scale = self.units.scale
+    def __init__(self, units: Units = Units.percent):
+        self._units = units
 
     @property
     def units(self) -> Units:
         return self._units
+
+    @property
+    def scale(self) -> Units:
+        return self.units.scale
 
     @overload
     def kernel(self, value: Array[Digit]) -> Array[U]: ...
@@ -106,11 +116,11 @@ class ScaleFilter(CoreFilter):
         if value is None:
             return None
 
-        return self._scale*value
+        return self.scale*value
 
-    # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
-        assert datum.units == Units.digit, f'{self.__class__.__name__}: {datum.units} is not valid! Only `digit` is supported!'
+        if not (datum.units == Units.digit):
+            raise DatumFilterError(f'{datum.units} is not valid! Only `digit` is supported!')
 
         return Datum(
             units=self.units,
@@ -120,7 +130,7 @@ class ScaleFilter(CoreFilter):
         )
 
 
-class OffsetFilter(CoreFilter):
+class OffsetFilter(CoreFilterABC):
     """Смещение `intensity` на велиличину `offset` фильтр."""
 
     def __new__(cls, offset: Data | None):
@@ -130,7 +140,10 @@ class OffsetFilter(CoreFilter):
         return super().__new__(cls)
 
     def __init__(self, offset: Data):
-        assert isinstance(offset, Data), f'Тип offset: {type(offset)} не поддерживается!'
+        if not isinstance(offset, Data):
+            raise FilterError(f'{self.__class__.__name__} is not support offset: {type(offset)}!')
+        if not (offset.units == Units.percent):
+            raise FilterError(f'{offset.units} is not valid! Only `persent` is supported!')
 
         self._offset = offset
 
@@ -145,21 +158,21 @@ class OffsetFilter(CoreFilter):
     @overload
     def kernel(self, value: None, kind: Literal['intensity', 'clipped', 'deviation']) -> None: ...
     def kernel(self, value, kind):
-        if (value is None):
+        if value is None:
             return None
 
-        match kind:
-            case 'intensity':
-                return value - self.offset.intensity.flatten()
-            case 'clipped':
-                return value | self.offset.clipped.flatten()
-            case 'deviation':
-                return np.sqrt(value**2 + self.offset.deviation.flatten()**2)
+        if kind == 'intensity':
+            return value - self.offset.intensity.flatten()
+        if kind == 'clipped':
+            return value | self.offset.clipped.flatten()
+        if kind == 'deviation':
+            return np.sqrt(value**2 + self.offset.deviation.flatten()**2)
 
-    # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
-        assert datum.units == self.offset.units
-        assert datum.n_numbers == self.offset.n_numbers
+        if not (datum.units == self.offset.units):
+            raise DatumFilterError(f'{datum.units} is not valid!')
+        if not (datum.n_numbers == self.offset.n_numbers):
+            raise DatumFilterError(f'{datum.units} is not valid!')
 
         return Datum(
             units=datum.units,
@@ -169,23 +182,24 @@ class OffsetFilter(CoreFilter):
         )
 
 
-class DeviationFilter(CoreFilter):
+class DeviationFilter(CoreFilterABC):
     """Расчет стандартного отклонения фильтр."""
 
-    def __new__(cls, offset: Data | None, units: Units):
+    def __new__(cls, offset: Data | None, *args, **kwargs):
         if offset is None:
             return None
 
         return super().__new__(cls)
 
-    def __init__(self, offset: Data, units: Units, adc: ADC | None = None, detector: Detector | None = None):
+    def __init__(
+        self,
+        offset: Data,  # `offset` is necessary to calculate a deviation correctly!
+        units: Units,
+    ):
         self._units = units
-        self._adc = adc or _ADC  # FIXME: remove it!
-        self._detector = detector or _DETECTOR  # FIXME: remove it!
-
-        self.noise = Noise(
-            adc=self._adc,
-            detector=self._detector,
+        self._noise = Noise(
+            adc=DEFAULT_ADC,
+            detector=DEFAULT_DETECTOR,
             units=self.units,
             n_frames=1,
         )
@@ -194,10 +208,13 @@ class DeviationFilter(CoreFilter):
     def units(self) -> Units:
         return self._units
 
+    @property
+    def noise(self) -> Noise:
+        return self._noise
+
     def kernel(self, value: Array[U]) -> Array[U]:
         return self.noise(value)
 
-    # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         assert datum.units == self.units
 

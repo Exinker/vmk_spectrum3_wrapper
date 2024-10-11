@@ -3,13 +3,12 @@ import pickle
 import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum
+from vmk_spectrum3_wrapper.filter.base_filter import FilterABC
+from vmk_spectrum3_wrapper.filter.switch_filter import split_shots
 from vmk_spectrum3_wrapper.types import MilliSecond
 
-from .filter import AbstractFilter
-from .switch_filter import split_shots
 
-
-class IntegrationFilter(AbstractFilter):
+class IntegrationFilter(FilterABC):
     """Базоый класс для интегральных фильтров (снижающих размерность данных по времени)."""
 
 
