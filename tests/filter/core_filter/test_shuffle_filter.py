@@ -1,4 +1,4 @@
-from vmk_spectrum3_wrapper.filter.core_filter import ShuffleFilter
+from vmk_spectrum3_wrapper.filter.core_filters import ShuffleFilter
 
 
 def test_shuffle_filter_skip():

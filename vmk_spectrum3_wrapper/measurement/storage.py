@@ -4,8 +4,8 @@ from collections.abc import Sequence
 import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum
-from vmk_spectrum3_wrapper.filter.pipe_filter import PipeFilter
-from vmk_spectrum3_wrapper.filter.preset import StandardIntegrationPreset
+from vmk_spectrum3_wrapper.filter.pipe_filters import PipeFilter
+from vmk_spectrum3_wrapper.filter.pipe_presets import StandardIntegrationPreset
 from vmk_spectrum3_wrapper.types import Array, MilliSecond, Second
 from vmk_spectrum3_wrapper.units import Units
 

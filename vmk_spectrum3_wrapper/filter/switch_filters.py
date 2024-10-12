@@ -4,13 +4,12 @@ import numpy as np
 
 from vmk_spectrum3_wrapper.config import DEBUG
 from vmk_spectrum3_wrapper.data import Datum
-
 from vmk_spectrum3_wrapper.filter.base_filter import FilterABC
-from .pipe_filter import PipeFilter
+from vmk_spectrum3_wrapper.filter.pipe_filters import PipeFilter
 
 
 class SwitchFilter(FilterABC):
-    """Фильт, разделяющий конвееры обработки данных на несколько (два)."""
+    """Фильтр, разделяющий конвееры обработки данных на несколько (два)."""
 
     def __init__(self, filters: Sequence[PipeFilter]):
         self._filters = filters
@@ -19,8 +18,13 @@ class SwitchFilter(FilterABC):
     def filters(self) -> Sequence[PipeFilter]:
         return self._filters
 
-    # --------        private        --------
-    def __call__(self, datum: Datum, *args, capacity: tuple[int, int], **kwargs) -> Datum:
+    def __call__(
+        self,
+        datum: Datum,
+        *args,
+        capacity: tuple[int, int],
+        **kwargs,
+    ) -> Datum:
         shots = split_shots(datum, capacity)
 
         for i, handler in enumerate(self.filters):
@@ -29,14 +33,17 @@ class SwitchFilter(FilterABC):
 
             try:
                 shots[i] = handler(shots[i])
+
             except Exception as error:
                 print(error)
 
         return merge_shots(shots)
 
 
-# --------        utils        --------
-def split_shots(datum: Datum, capacity: tuple[int, int]) -> list[Datum]:
+def split_shots(
+    datum: Datum,
+    capacity: tuple[int, int],
+) -> list[Datum]:
     """Разделить `datum` по `capacity` на несколько (два)."""
 
     def inner(capacity: tuple[int, int]) -> slice:
@@ -53,11 +60,15 @@ def split_shots(datum: Datum, capacity: tuple[int, int]) -> list[Datum]:
     ]
 
 
-def merge_shots(shots: Sequence[Datum]) -> Datum:
+def merge_shots(
+    shots: Sequence[Datum],
+) -> Datum:
     """Слить несколько `shots` в один `datum`."""
+
     def inner(values):
         try:
             return np.concatenate(values, axis=0)
+
         except Exception as error:
             print(error)
 

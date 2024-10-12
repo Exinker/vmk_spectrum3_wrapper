@@ -2,9 +2,8 @@ from collections.abc import Sequence
 
 from vmk_spectrum3_wrapper.config import DEBUG
 from vmk_spectrum3_wrapper.data import Datum
-
 from vmk_spectrum3_wrapper.filter.base_filter import FilterABC
-from .typing import F
+from vmk_spectrum3_wrapper.filter.typing import F
 
 
 class PipeFilter(FilterABC):
@@ -17,7 +16,6 @@ class PipeFilter(FilterABC):
     def filters(self) -> Sequence[F]:
         return self._filters
 
-    # --------        private        --------
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
 
         for handler in self.filters:
@@ -26,6 +24,7 @@ class PipeFilter(FilterABC):
 
             try:
                 datum = handler(datum, *args, **kwargs)
+
             except Exception as error:
                 print(error)
 

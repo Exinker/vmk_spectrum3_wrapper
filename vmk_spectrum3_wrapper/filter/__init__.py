@@ -1,7 +1,7 @@
 from typing import TypeAlias
 
-from .core_filter import ClipFilter, DeviationFilter, OffsetFilter, ScaleFilter, ShuffleFilter
-from .integration_filter import IntegrationFilter, StandardIntegrationFilter, HighDynamicRangeIntegrationFilter
-from .pipe_filter import PipeFilter
-from .preset import CorePreset, StandardIntegrationPreset, HighDynamicRangeIntegrationPreset
+from .core_filters import ClipFilter, DeviationFilter, OffsetFilter, ScaleFilter, ShuffleFilter
+from .integration_filters import IntegrationFilter, StandardIntegrationFilter, HighDynamicRangeIntegrationFilter
+from .pipe_filters import PipeFilter
+from .pipe_presets import CorePreset, StandardIntegrationPreset, HighDynamicRangeIntegrationPreset
 from .typing import F

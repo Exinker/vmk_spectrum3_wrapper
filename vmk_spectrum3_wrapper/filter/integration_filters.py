@@ -4,7 +4,7 @@ import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.filter.base_filter import FilterABC
-from vmk_spectrum3_wrapper.filter.switch_filter import split_shots
+from vmk_spectrum3_wrapper.filter.switch_filters import split_shots
 from vmk_spectrum3_wrapper.types import MilliSecond
 
 

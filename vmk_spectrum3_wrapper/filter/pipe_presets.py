@@ -1,11 +1,10 @@
 from vmk_spectrum3_wrapper.data import Data
+from vmk_spectrum3_wrapper.filter.core_filters import ClipFilter, DeviationFilter, OffsetFilter, ScaleFilter, ShuffleFilter
+from vmk_spectrum3_wrapper.filter.integration_filters import HighDynamicRangeIntegrationFilter, StandardIntegrationFilter
+from vmk_spectrum3_wrapper.filter.pipe_filters import PipeFilter
+from vmk_spectrum3_wrapper.filter.switch_filters import SwitchFilter
 from vmk_spectrum3_wrapper.shuffle import Shuffle
 from vmk_spectrum3_wrapper.units import Units
-
-from .core_filter import ClipFilter, DeviationFilter, OffsetFilter, ScaleFilter, ShuffleFilter
-from .integration_filter import HighDynamicRangeIntegrationFilter, StandardIntegrationFilter
-from .pipe_filter import PipeFilter
-from .switch_filter import SwitchFilter
 
 
 class CorePreset(PipeFilter):
