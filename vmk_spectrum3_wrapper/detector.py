@@ -55,11 +55,6 @@ class Detector(Enum):
         """Config of the detector."""
         return self.value
 
-    @property
-    def pitch(self) -> MicroMeter:
-        """Pitch structure of the detector."""
-        return self.config.width
-
     def __str__(self) -> str:
         cls = self.__class__
         name = self.config.name

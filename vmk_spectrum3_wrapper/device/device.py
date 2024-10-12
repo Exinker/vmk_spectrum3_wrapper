@@ -5,7 +5,7 @@ from typing import Callable, Mapping
 import numpy as np
 import pyspectrum3 as ps3
 
-from vmk_spectrum3_wrapper.data import Data, DataMeta
+from vmk_spectrum3_wrapper.data import Data, Meta
 from vmk_spectrum3_wrapper.device.device_config import DeviceConfig, DeviceConfigAuto, DeviceConfigManual
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
 from vmk_spectrum3_wrapper.filter import F
@@ -207,7 +207,7 @@ class Device:
 
             return Data.squeeze(
                 storage.pull(),
-                DataMeta(
+                Meta(
                     exposure=storage.exposure,
                     capacity=storage.capacity,
                     started_at=storage.started_at,

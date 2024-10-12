@@ -9,7 +9,7 @@ import numpy as np
 from vmk_spectrum3_wrapper.types import Array, U
 from vmk_spectrum3_wrapper.units import Units
 
-from .meta import DataMeta
+from .meta import Meta
 from .utils import crop, join, reshape
 
 
@@ -21,7 +21,7 @@ class BaseData(ABC):
         intensity: Array[U],
         clipped: Array[bool] | None = None,
         deviation: Array[bool] | None = None,
-        meta: DataMeta | None = None,
+        meta: Meta | None = None,
     ):
         self.intensity = intensity
         self.units = units
@@ -59,7 +59,7 @@ class BaseData(ABC):
 
     @classmethod
     @abstractmethod
-    def loads(cls, dat: Mapping[str, Any]) -> 'BaseData':
+    def loads(cls, __dump: Mapping[str, Any]) -> 'BaseData':
         raise NotImplementedError
 
 
@@ -113,23 +113,26 @@ class Datum(BaseData):
         return dat
 
     @classmethod
-    def loads(cls, dat: Mapping[str, Any]) -> 'Datum':
+    def loads(cls, __dump: Mapping[str, Any]) -> 'Datum':
 
         units = {
             'Units.digit': Units.digit,
             'Units.percent': Units.percent,
             'Units.electron': Units.electron,
-        }.get(dat.get('units'), Units.percent)
+        }.get(__dump.get('units'), Units.percent)
 
         datum = cls(
             units=units,
-            intensity=pickle.loads(dat.get('intensity')),
-            clipped=pickle.loads(dat.get('clipped')),
-            deviation=pickle.loads(dat.get('deviation')),
+            intensity=pickle.loads(__dump.get('intensity')),
+            clipped=pickle.loads(__dump.get('clipped')),
+            deviation=pickle.loads(__dump.get('deviation')),
         )
         return datum
 
-    def __getitem__(self, index: tuple[int | Array[int] | slice, int | Array[int] | slice]) -> 'BaseData':
+    def __getitem__(
+        self,
+        index: tuple[int | Array[int] | slice, int | Array[int] | slice],
+    ) -> 'BaseData':
         """Итерировать по `index` вдоль времени и пространству."""
         cls = self.__class__
 
@@ -149,7 +152,7 @@ class Data(BaseData):
         intensity: Array[U],
         clipped: Array[bool] | None = None,
         deviation: Array[bool] | None = None,
-        meta: DataMeta | None = None,
+        meta: Meta | None = None,
     ):
         super().__init__(
             units=units,
@@ -191,7 +194,7 @@ class Data(BaseData):
     def squeeze(
         cls,
         __items: Sequence[Datum],
-        meta: DataMeta,
+        meta: Meta,
     ) -> 'Data':
 
         return cls(
@@ -220,20 +223,20 @@ class Data(BaseData):
             pickle.dump(dat, file)
 
     @classmethod
-    def loads(cls, dat: Mapping[str, Any]) -> 'Data':
+    def loads(cls, _dump: Mapping[str, Any]) -> 'Data':
 
         units = {
             'Units.digit': Units.digit,
             'Units.percent': Units.percent,
             'Units.electron': Units.electron,
-        }.get(dat.get('units'), Units.percent)
+        }.get(_dump.get('units'), Units.percent)
 
         datum = cls(
             units=units,
-            intensity=pickle.loads(dat.get('intensity')),
-            clipped=pickle.loads(dat.get('clipped')),
-            deviation=pickle.loads(dat.get('deviation')),
-            meta=DataMeta.loads(dat.get('meta')) if dat.get('meta') else None,
+            intensity=pickle.loads(_dump.get('intensity')),
+            clipped=pickle.loads(_dump.get('clipped')),
+            deviation=pickle.loads(_dump.get('deviation')),
+            meta=Meta.loads(_dump.get('meta')) if _dump.get('meta') else None,
         )
         return datum
 

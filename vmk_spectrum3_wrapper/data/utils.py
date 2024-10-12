@@ -3,69 +3,70 @@ from typing import overload
 
 import numpy as np
 
+from vmk_spectrum3_wrapper.data.exceptions import ArrayShapeError
 from vmk_spectrum3_wrapper.types import Array, U
 
 
 @overload
-def reshape(value: Array[U], flatten: bool = False) -> Array[U]: ...
+def crop(
+    __value: None,
+    index: tuple[int | Array[int] | slice, int | Array[int] | slice],
+) -> None: ...
 @overload
-def reshape(value: None, flatten: bool = False) -> None: ...
-def reshape(value, flatten=False):
-
-    if value is None:
-        return None
-
-    if value.ndim == 1:
-        if flatten:
-            return value
-
-        return value.reshape(1, -1)
-
-    if value.ndim == 2:
-        if flatten and (value.shape[0] == 1):
-            return value.reshape(-1)
-
-        return value
-
-    raise ValueError
-
-
+def crop(
+    __value: Array[U],
+    index: tuple[int | Array[int] | slice, int | Array[int] | slice],
+) -> Array[U]: ...
 @overload
-def crop(value: None, index: tuple) -> None: ...
-@overload
-def crop(value: Array[U], index) -> Array[U]: ...
-@overload
-def crop(value: Array[bool], index) -> Array[bool]: ...
-def crop(value, index):
-    if value is None:
+def crop(
+    __value: Array[bool],
+    index: tuple[int | Array[int] | slice, int | Array[int] | slice],
+) -> Array[bool]: ...
+def crop(__value, index):
+
+    if __value is None:
         return None
 
     time, number = index
-    return value[time, number]
+    return __value[time, number]
 
 
 @overload
-def split(value: Array[U], index: Array[int]) -> Array[U]: ...
+def reshape(__value: Array[U], flatten: bool = False) -> Array[U]: ...
 @overload
-def split(value: Array[bool], index: Array[int]) -> Array[bool]: ...
-@overload
-def split(value: None, index: Array[int]) -> None: ...
-def split(value, index):
-    if value is None:
+def reshape(__value: None, flatten) -> None: ...
+def reshape(__value, flatten=False):
+
+    if __value is None:
         return None
 
-    if value.ndim == 1:
-        return value
+    if __value.ndim == 1:
+        if flatten:
+            return __value
 
-    return value[index, :]
+        return __value.reshape(1, -1)
+
+    if __value.ndim == 2:
+        if flatten:
+            if __value.shape[0] == 1:
+                return __value.reshape(-1)
+
+            raise ArrayShapeError(f'Array with shape: {__value.shape} could not be flattened!')
+
+        return __value
+
+    raise ArrayShapeError(f'Array with shape: {__value.shape} is not supported!')
 
 
 @overload
-def join(values: Sequence[Array[U]]) -> Array[U]: ...
+def join(__values: Sequence[Array[U]]) -> Array[U]: ...
 @overload
-def join(values: Sequence[Array[bool]]) -> Array[bool]: ...
-def join(values):
-    if values[0] is None:
+def join(__values: Sequence[Array[bool]]) -> Array[bool]: ...
+@overload
+def join(__values: Sequence[None]) -> None: ...
+def join(__values):
+
+    if __values[0] is None:
         return None
 
-    return np.concatenate(values)
+    return np.concatenate(__values)
