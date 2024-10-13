@@ -2,8 +2,8 @@ from collections.abc import Sequence
 
 from vmk_spectrum3_wrapper.config import DEBUG
 from vmk_spectrum3_wrapper.data import Datum
-from vmk_spectrum3_wrapper.filter.base_filter import FilterABC
-from vmk_spectrum3_wrapper.filter.typing import F
+from vmk_spectrum3_wrapper.filters.base_filter import FilterABC
+from vmk_spectrum3_wrapper.filters.typing import F
 
 
 class PipeFilter(FilterABC):

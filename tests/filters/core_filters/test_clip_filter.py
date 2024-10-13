@@ -4,8 +4,8 @@ import pytest
 from vmk_spectrum3_wrapper.adc import ADC
 from vmk_spectrum3_wrapper.config import DEFAULT_ADC
 from vmk_spectrum3_wrapper.data import Datum
-from vmk_spectrum3_wrapper.filter.core_filters import ClipFilter
-from vmk_spectrum3_wrapper.filter.exceptions import DatumFilterError, FilterError
+from vmk_spectrum3_wrapper.filters.core_filters import ClipFilter
+from vmk_spectrum3_wrapper.filters.exceptions import DatumFilterError, FilterError
 from vmk_spectrum3_wrapper.types import Array, Digit, U
 from vmk_spectrum3_wrapper.units import Units
 

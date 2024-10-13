@@ -7,8 +7,8 @@ from vmk_spectrum3_wrapper.adc import ADC
 from vmk_spectrum3_wrapper.config import DEFAULT_ADC, DEFAULT_DETECTOR
 from vmk_spectrum3_wrapper.data import Data, Datum
 from vmk_spectrum3_wrapper.detector import Detector
-from vmk_spectrum3_wrapper.filter.base_filter import FilterABC
-from vmk_spectrum3_wrapper.filter.exceptions import DatumFilterError, FilterError
+from vmk_spectrum3_wrapper.filters.base_filter import FilterABC
+from vmk_spectrum3_wrapper.filters.exceptions import DatumFilterError, FilterError
 from vmk_spectrum3_wrapper.noise import Noise
 from vmk_spectrum3_wrapper.shuffle import Shuffle
 from vmk_spectrum3_wrapper.types import Array, Digit, U

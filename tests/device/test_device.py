@@ -10,68 +10,55 @@ import numpy as np
 import pyspectrum3 as ps3
 
 from vmk_spectrum3_wrapper.data import Data, Meta, Datum
-from vmk_spectrum3_wrapper.device.device_config import DeviceConfig, DeviceConfigAuto, DeviceConfigManual
-from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
-from vmk_spectrum3_wrapper.filter import F
-from vmk_spectrum3_wrapper.measurement import Measurement, StandardSchema
+from vmk_spectrum3_wrapper.device.device import Device, DeviceManagerFactory
+from vmk_spectrum3_wrapper.device.device_config import DeviceConfig
 from vmk_spectrum3_wrapper.types import Array, Digit, IP, MilliSecond
-from vmk_spectrum3_wrapper.units import Units
 
 
-class FakeDevice:
+class FakeDeviceManager:
 
-    def setup(
-        self,
-        n_times: int,
-        exposure: MilliSecond | tuple[MilliSecond, MilliSecond],
-        capacity: int | tuple[int, int] = 1,
-        handler: F | None = None,
-    ) -> 'FakeDevice':
+    def __init__(self):
+        self.on_context = None
+        self.on_status = None
+        self.on_error = None
+        self._is_connected = False
+        self._filter = None
+        self._measurement = None
 
-        self._measurement = Measurement.create(
-            n_times=n_times,
-            exposure=exposure,
-            capacity=capacity,
-            handler=handler,
-        )
+    def set_context_callback(self, __on_context: Callable[[ps3.AssemblyContext], None]):
+        self.on_context = __on_context
 
-        return self
+    def set_status_callback(self, __on_status: Callable[[Mapping[IP, ps3.AssemblyStatus]], None]):
+        self.on_context = __on_status
 
-    def read(self) -> Data:
-        assert isinstance(self._measurement.schema, StandardSchema)
+    def set_error_callback(self, __on_error: Callable[[ps3.AsyncDriverException], None]):
+        self.on_context = __on_error
 
-        schema = self._measurement.schema
-        tau = schema.exposure
-        capacity = schema.capacity
+    def connect(self) -> None:
+        self._is_connected = True
 
-        n_numbers = 4096
-        units = Units.percent
-        intensity = np.random.randn(capacity, n_numbers)
+    def disconnect(self) -> None:
+        self._is_connected = False
 
-        datum = Datum(
-            units=units,
-            intensity=intensity,
-            clipped=intensity >= units.value_max,
-            deviation=None,
-        )
+    def set_pipe_filter(self, __filter: ps3.DefaultCopyPipeFilter) -> None:
+        self._filter = __filter
+
+    def set_measurement(self, __measurement: ps3.Measurement) -> None:
+        self._measurement = __measurement
+
+    def read(self) -> None:
+        print()
 
 
-def isclose(a: Array | None, b: Array | None) -> bool:
-
-    if isinstance(a, None) and isinstance(b, None):
-        return True
-    if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
-        return np.isclose(a, b)
-
-    return False
+def _create(self, config: DeviceConfig) -> FakeDeviceManager:
+    return FakeDeviceManager()
 
 
-@pytest.fixture
-def fake_device_factory() -> Callable[..., FakeDevice]:
+def test_device_read(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(DeviceManagerFactory, '_create', _create)
 
-    def inner(*args, **kwargs) -> FakeDevice:
-        device = FakeDevice()
-        device = device.setup(*args, **kwargs)
-        return device
+    device = Device()
 
-    return inner
+    assert True

@@ -5,9 +5,9 @@ import pyspectrum3 as ps3
 
 from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.exception import SetupDeviceError
-from vmk_spectrum3_wrapper.filter import F
+from vmk_spectrum3_wrapper.filters import F
 from vmk_spectrum3_wrapper.measurement.exceptions import SchemaError
-from vmk_spectrum3_wrapper.measurement.schema import ExtendedSchema, Schema, StandardSchema, schema_factory
+from vmk_spectrum3_wrapper.measurement.schemas import ExtendedSchema, Schema, StandardSchema, schema_factory
 from vmk_spectrum3_wrapper.measurement.storage import Storage
 from vmk_spectrum3_wrapper.types import Array, MilliSecond
 

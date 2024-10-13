@@ -1,7 +1,7 @@
 import pytest
 
 from vmk_spectrum3_wrapper.measurement.exceptions import SchemaCapacityError, SchemaExposureError
-from vmk_spectrum3_wrapper.measurement.schema import ExtendedSchema, StandardSchema
+from vmk_spectrum3_wrapper.measurement.schemas import ExtendedSchema, StandardSchema
 from vmk_spectrum3_wrapper.types import MilliSecond
 
 

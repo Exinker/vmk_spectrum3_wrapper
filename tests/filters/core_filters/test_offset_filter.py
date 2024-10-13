@@ -4,7 +4,7 @@ import pytest
 from tests.utils import calculate_clipped ,calculate_deviation
 from vmk_spectrum3_wrapper.config import DEFAULT_DETECTOR
 from vmk_spectrum3_wrapper.data import Data, Datum
-from vmk_spectrum3_wrapper.filter.core_filters import OffsetFilter
+from vmk_spectrum3_wrapper.filters.core_filters import OffsetFilter
 from vmk_spectrum3_wrapper.types import Array, Percent
 from vmk_spectrum3_wrapper.units import Units
 

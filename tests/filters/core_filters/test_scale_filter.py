@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 from vmk_spectrum3_wrapper.data import Datum
-from vmk_spectrum3_wrapper.filter.core_filters import ScaleFilter
-from vmk_spectrum3_wrapper.filter.exceptions import DatumFilterError
+from vmk_spectrum3_wrapper.filters.core_filters import ScaleFilter
+from vmk_spectrum3_wrapper.filters.exceptions import DatumFilterError
 from vmk_spectrum3_wrapper.types import Array, Digit
 from vmk_spectrum3_wrapper.units import Units
 

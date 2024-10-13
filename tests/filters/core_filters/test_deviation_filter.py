@@ -4,7 +4,7 @@ import pytest
 from tests.utils import calculate_deviation
 from vmk_spectrum3_wrapper.config import DEFAULT_ADC, DEFAULT_DETECTOR
 from vmk_spectrum3_wrapper.data import Data, Datum
-from vmk_spectrum3_wrapper.filter.core_filters import DeviationFilter
+from vmk_spectrum3_wrapper.filters.core_filters import DeviationFilter
 from vmk_spectrum3_wrapper.noise import Noise
 from vmk_spectrum3_wrapper.types import Array, Digit
 from vmk_spectrum3_wrapper.units import Units

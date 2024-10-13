@@ -8,12 +8,12 @@ import pyspectrum3 as ps3
 from vmk_spectrum3_wrapper.data import Data, Meta
 from vmk_spectrum3_wrapper.device.device_config import DeviceConfig, DeviceConfigAuto, DeviceConfigManual
 from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
-from vmk_spectrum3_wrapper.filter import F
+from vmk_spectrum3_wrapper.filters import F
 from vmk_spectrum3_wrapper.measurement import Measurement
 from vmk_spectrum3_wrapper.types import Array, Digit, IP, MilliSecond
 
 
-class DeviceFactory:
+class DeviceManagerFactory:
 
     def __init__(
         self,
@@ -26,37 +26,39 @@ class DeviceFactory:
         self.on_status = on_status
         self.on_error = on_error
 
-    def create(self, config: DeviceConfig) -> 'Device':
-        """Create device by config and initialize it."""
+    def create(self, config: DeviceConfig) -> ps3.DeviceManager:
+        """Create device manager by config and initialize it."""
 
-        device = self._create(config=config)
+        device_manager = self._create(config=config)
 
         if self.on_context:
-            device.set_context_callback(self.on_context)
+            device_manager.set_context_callback(self.on_context)
+
         if self.on_status:
-            device.set_status_callback(self.on_status)
+            device_manager.set_status_callback(self.on_status)
+
         if self.on_error:
-            device.set_error_callback(self.on_error)
+            device_manager.set_error_callback(self.on_error)
 
-        return device
+        return device_manager
 
-    def _create(self, config: DeviceConfig) -> 'Device':
+    def _create(self, config: DeviceConfig) -> ps3.DeviceManager:
 
-        device = ps3.DeviceManager()
+        device_manager = ps3.DeviceManager()
 
         if isinstance(config, DeviceConfigAuto):
-            device.initialize(
+            device_manager.initialize(
                 ps3.AutoConfig().config(),
             )
-            return device
+            return device_manager
 
         if isinstance(config, DeviceConfigManual):
-            device.initialize(
+            device_manager.initialize(
                 ps3.DeviceConfigFile([ps3.AssemblyConfigFile(ip) for ip in config.ip]),
             )
-            return device
+            return device_manager
 
-        raise ValueError(f'Device {type(config).__name__} is not supported yet!')
+        raise ValueError(f'{type(config).__name__} is not supported yet!')
 
 
 class Device:
@@ -68,7 +70,7 @@ class Device:
     ) -> None:
 
         self._config = config or DeviceConfigAuto()
-        self._device = DeviceFactory(
+        self._device_manager = DeviceManagerFactory(
             on_context=self._on_context,
             on_status=self._on_status,
             on_error=self._on_error,
@@ -85,8 +87,8 @@ class Device:
         return self._config
 
     @property
-    def device(self) -> 'Device':
-        return self._device
+    def device_manager(self) -> ps3.DeviceManager:
+        return self._device_manager
 
     @property
     def status(self) -> Mapping[IP, ps3.AssemblyStatus] | None:
@@ -104,7 +106,7 @@ class Device:
             return self
 
         try:
-            self.device.connect()
+            self.device_manager.connect()
         except ps3.DriverException as error:
             eprint(message=emessage, error=error)
         else:
@@ -124,7 +126,7 @@ class Device:
             return self
 
         try:
-            self.device.disconnect()
+            self.device_manager.disconnect()
         except ps3.DriverException as error:
             eprint(message=emessage, error=error)
         else:
@@ -158,8 +160,8 @@ class Device:
             return self
 
         try:
-            self.device.set_pipe_filter(ps3.DefaultCopyPipeFilter.instance())
-            self.device.set_measurement(ps3.Measurement(*self._measurement))
+            self.device_manager.set_pipe_filter(ps3.DefaultCopyPipeFilter.instance())
+            self.device_manager.set_measurement(ps3.Measurement(*self._measurement))
         except ps3.DriverException as error:
             eprint(message=emessage, error=error)
 
@@ -195,7 +197,7 @@ class Device:
             return None
 
         # read data
-        self.device.read()
+        self.device_manager.read()
         self._wait(timeout)
 
         # block
@@ -234,7 +236,6 @@ class Device:
 
         raise StatusDeviceError(f'Status type {type(__status)} is not supported yet!')
 
-    # --------        callbacks        --------
     def _on_context(self, context: ps3.AssemblyContext) -> None:
         self._on_frame(
             frame=np.array(context.result),
@@ -257,7 +258,6 @@ class Device:
         if self.verbose:
             print('on_error:', type(error), error, flush=True)
 
-    # --------        checks        --------
     def _check_connection(self, state: bool = True) -> None:
         if self._is_connected != state:
             raise ConnectionDeviceError({
@@ -284,7 +284,6 @@ class Device:
         if self._measurement is None:
             raise SetupDeviceError('Setup a device before!')
 
-    # --------        private        --------
     @staticmethod
     def _wait(duration: MilliSecond) -> None:
         time.sleep(1e-3*duration)
