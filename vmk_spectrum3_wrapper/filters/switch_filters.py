@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 import numpy as np
 
-from vmk_spectrum3_wrapper.config import DEBUG
+from vmk_spectrum3_wrapper.config import LOGGER_LEVEL
 from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.filters.base_filter import FilterABC
 from vmk_spectrum3_wrapper.filters.pipe_filters import PipeFilter
@@ -28,7 +28,7 @@ class SwitchFilter(FilterABC):
         shots = split_shots(datum, capacity)
 
         for i, handler in enumerate(self.filters):
-            if DEBUG:
+            if LOGGER_LEVEL == 'DEBUG':
                 print(type(handler), handler)
 
             try:
@@ -74,7 +74,7 @@ def merge_shots(
 
         return None
 
-    if DEBUG:
+    if LOGGER_LEVEL == 'DEBUG':
         for i, shot in enumerate(shots):
             print(f'short({i}): {shot.n_times}x{shot.n_numbers}', shot.intensity, shot.clipped)
 

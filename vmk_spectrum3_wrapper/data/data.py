@@ -193,15 +193,15 @@ class Data(BaseData):
     @classmethod
     def squeeze(
         cls,
-        __items: Sequence[Datum],
+        __frames: Sequence[Datum],
         meta: Meta,
     ) -> 'Data':
 
         return cls(
-            units=__items[0].units,
-            intensity=join([item.intensity for item in __items]),
-            clipped=join([item.clipped for item in __items]),
-            deviation=join([item.deviation for item in __items]),
+            units=__frames[0].units,
+            intensity=join([item.intensity for item in __frames]),
+            clipped=join([item.clipped for item in __frames]),
+            deviation=join([item.deviation for item in __frames]),
             meta=meta,
         )
 
