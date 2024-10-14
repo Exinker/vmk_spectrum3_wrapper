@@ -37,12 +37,12 @@ class Storage:
         return self._handler
 
     @property
-    def started_at(self) -> MilliSecond | tuple[MilliSecond, MilliSecond]:
+    def started_at(self) -> float:
         """"Время окончания первого измерения."""
         return self._started_at
 
     @property
-    def finished_at(self) -> MilliSecond | tuple[MilliSecond, MilliSecond]:
+    def finished_at(self) -> float:
         """"Время окончания последнего измерения."""
         return self._finished_at
 
@@ -69,14 +69,19 @@ class Storage:
 
         return self._finished_at - self._started_at
 
-    # --------        handler        --------
-    def pull(self, clear: bool = True) -> list[Datum]:
+    def pull(self, clear: bool = True) -> tuple[list[Datum], float, float]:
         """Pull data from storage."""
 
         try:
-            return self.data.copy()
+            return (
+                self.data.copy(),
+                self._started_at,
+                self._finished_at,
+            )
 
         finally:
+            self._started_at = None
+            self._finished_at = None
             self.buffer.clear()
             self.data.clear()
 
@@ -109,7 +114,6 @@ class Storage:
             #
             self.buffer.clear()
 
-    # --------        private        --------
     def __bool__(self) -> bool:
         return True
 

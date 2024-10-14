@@ -1,5 +1,6 @@
-import time
 from collections.abc import Sequence
+import logging
+import time
 from typing import Callable, Mapping
 
 import numpy as np
@@ -11,6 +12,9 @@ from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, 
 from vmk_spectrum3_wrapper.filter import F
 from vmk_spectrum3_wrapper.measurement import Measurement
 from vmk_spectrum3_wrapper.types import Array, Digit, IP, MilliSecond
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class DeviceFactory:
@@ -94,20 +98,28 @@ class Device:
 
     def connect(self) -> 'Device':
         """Connect to device."""
-        emessage = 'Device is not ready to connect!'
 
         try:
             self._check_connection(state=False)
         except DeviceError as error:
-            eprint(message=emessage, error=error)
-
+            LOGGER.error(
+                'Device is not ready!',
+                exc_info=error,
+            )
             return self
 
         try:
             self.device.connect()
         except ps3.DriverException as error:
-            eprint(message=emessage, error=error)
+            LOGGER.info(
+                'Device is not connected!',
+                exc_info=error,
+            )
+            return self
         else:
+            LOGGER.info(
+                'Device is connected.',
+            )
             self._is_connected = True
 
         return self
@@ -140,8 +152,6 @@ class Device:
         handler: F | None = None,
     ) -> 'Device':
         """Setup device to read."""
-        emessage = 'Device is not ready to setup!'
-
         self._measurement = Measurement.create(
             n_times=n_times,
             exposure=exposure,
@@ -153,24 +163,29 @@ class Device:
             self._check_connection()
             self._check_status(ps3.AssemblyStatus.ALIVE)
         except DeviceError as error:
-            eprint(message=emessage, error=error)
-
+            LOGGER.error(
+                'Device is not ready!',
+                exc_info=error,
+            )
             return self
 
         try:
             self.device.set_pipe_filter(ps3.DefaultCopyPipeFilter.instance())
             self.device.set_measurement(ps3.Measurement(*self._measurement))
         except ps3.DriverException as error:
-            eprint(message=emessage, error=error)
-
+            LOGGER.error(
+                'Device is not setup!',
+                exc_info=error,
+            )
             return self
         else:
             self._wait(
                 duration=self.config.change_exposure_delay,  # TODO: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
             )
-            if self.verbose:
-                emessage = f'Setup: {self._measurement}'
-                print(emessage)
+            LOGGER.info(
+                'Device is setup: %s',
+                self._measurement,
+            )
 
         return self
 
@@ -181,37 +196,46 @@ class Device:
     ) -> Data | None:
         """Прочитать и вернуть данные (blocking), или прочитать в `storage` (non blocking)."""
 
-        # pass checks
         try:
             self._check_connection()
-            # self._check_status(ps3.AssemblyStatus.ALIVE)  # TODO: по какой-то причине должго не приходит статус ps3.AssemblyStatus.ALIVE
+            # self._check_status(ps3.AssemblyStatus.ALIVE)  # TODO: по какой-то причине иногда не приходит статус ps3.AssemblyStatus.ALIVE
             self._check_measurement()
-
         except DeviceError as error:
-            eprint(
-                message='Device is not ready to read!',
-                error=error,
+            LOGGER.error(
+                'Device is not ready!',
+                exc_info=error,
             )
             return None
 
-        # read data
         self.device.read()
         self._wait(timeout)
 
-        # block
         if blocking:
             while self._measurement.progress < 1:
                 self._wait(timeout)
+                LOGGER.debug(
+                    'Reading data: %d%s',
+                    self._measurement.progress*100,
+                    '%',
+                )
 
-            storage = self._measurement.storage
+            frames, started_at, finished_at = self._measurement.storage.pull()
+            if LOGGER.isEnabledFor(logging.INFO):
+                n_frames = len(frames)
+                seconds = (finished_at - started_at)*(n_frames)/(n_frames - 1) if n_frames > 1 else 0
+                LOGGER.info(
+                    'Reading is complete! Total: %d frames in %.3fs (approx).',
+                    n_frames,
+                    seconds,
+                )
 
             return Data.squeeze(
-                storage.pull(),
+                frames,
                 Meta(
-                    exposure=storage.exposure,
-                    capacity=storage.capacity,
-                    started_at=storage.started_at,
-                    finished_at=storage.finished_at,
+                    exposure=self._measurement.storage.exposure,
+                    capacity=self._measurement.storage.capacity,
+                    started_at=started_at,
+                    finished_at=finished_at,
                 ),
             )
 
@@ -219,13 +243,11 @@ class Device:
 
         if self.status is None:
             return False
-
         if isinstance(__status, ps3.AssemblyStatus):
             return all(
                 status == __status
                 for ip, status in self.status.items()
             )
-
         if isinstance(__status, Sequence):
             return all(
                 status in __status
@@ -234,8 +256,12 @@ class Device:
 
         raise StatusDeviceError(f'Status type {type(__status)} is not supported yet!')
 
-    # --------        callbacks        --------
     def _on_context(self, context: ps3.AssemblyContext) -> None:
+        LOGGER.debug(
+            'Data is received: %s (%d)',
+            context.assembly_params.id,
+            context.frame_state.frame_number,
+        )
         self._on_frame(
             frame=np.array(context.result),
         )
@@ -243,21 +269,20 @@ class Device:
     def _on_frame(self, frame: Array[Digit]) -> None:
         self._measurement.put(frame)
 
-        if self.verbose:
-            print('on_frame:', len(frame), frame, flush=True)
-
     def _on_status(self, status: Mapping[IP, ps3.AssemblyStatus]) -> None:
+        LOGGER.info(
+            'Status is updated: %s.',
+            status,
+        )
         self._status = status
 
-        if self.verbose:
-            print('on_status:', status, flush=True)
-
     def _on_error(self, error: ps3.AsyncDriverException) -> None:
+        LOGGER.error(
+            'Error is raised: %s',
+            error,
+            exc_info=error,
+        )
 
-        if self.verbose:
-            print('on_error:', type(error), error, flush=True)
-
-    # --------        checks        --------
     def _check_connection(self, state: bool = True) -> None:
         if self._is_connected != state:
             raise ConnectionDeviceError({
@@ -284,7 +309,6 @@ class Device:
         if self._measurement is None:
             raise SetupDeviceError('Setup a device before!')
 
-    # --------        private        --------
     @staticmethod
     def _wait(duration: MilliSecond) -> None:
         time.sleep(1e-3*duration)

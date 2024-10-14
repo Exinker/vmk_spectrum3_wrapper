@@ -1,9 +1,12 @@
 from collections.abc import Sequence
+import logging
 
-from vmk_spectrum3_wrapper.config import DEBUG
 from vmk_spectrum3_wrapper.data import Datum
 from vmk_spectrum3_wrapper.filter.base_filter import FilterABC
 from vmk_spectrum3_wrapper.filter.typing import F
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class PipeFilter(FilterABC):
@@ -19,13 +22,20 @@ class PipeFilter(FilterABC):
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
 
         for handler in self.filters:
-            if DEBUG:
-                print(type(handler), handler)
+            # LOGGER.debug(
+            #     '%s is processing...',
+            #     handler.__class__.__name__,
+            # )
 
             try:
                 datum = handler(datum, *args, **kwargs)
 
             except Exception as error:
+                LOGGER.error(
+                    'An error was happend while processing datum by filter %s',
+                    handler,
+                    exc_info=error,
+                )
                 print(error)
 
         return datum

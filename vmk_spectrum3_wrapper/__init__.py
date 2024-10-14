@@ -1,3 +1,8 @@
+from vmk_spectrum3_wrapper.loggers import setdefault_logger
+
+setdefault_logger()
+
+
 NAME = 'vmk_spectrum3_wrapper'
 DESCRIPTION = 'It is a wrapper for `vmk_spectrum3` library.'
 VERSION = '0.2.2'
