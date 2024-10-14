@@ -31,16 +31,14 @@ class DeviceManagerFactory:
         self.on_error = on_error
 
     def create(self, config: DeviceConfig) -> ps3.DeviceManager:
-        """Create device manager by config and initialize it."""
+        """Create device by config and initialize it."""
 
         device_manager = self._create(config=config)
 
         if self.on_context:
             device_manager.set_context_callback(self.on_context)
-
         if self.on_status:
             device_manager.set_status_callback(self.on_status)
-
         if self.on_error:
             device_manager.set_error_callback(self.on_error)
 
@@ -62,7 +60,7 @@ class DeviceManagerFactory:
             )
             return device_manager
 
-        raise ValueError(f'{type(config).__name__} is not supported yet!')
+        raise ValueError(f'Device {type(config).__name__} is not supported yet!')
 
 
 class Device:
@@ -74,7 +72,7 @@ class Device:
     ) -> None:
 
         self._config = config or DeviceConfigAuto()
-        self._device_manager = DeviceManagerFactory(
+        self._manager = DeviceManagerFactory(
             on_context=self._on_context,
             on_status=self._on_status,
             on_error=self._on_error,
@@ -92,7 +90,7 @@ class Device:
 
     @property
     def device_manager(self) -> ps3.DeviceManager:
-        return self._device_manager
+        return self._manager
 
     @property
     def status(self) -> Mapping[IP, ps3.AssemblyStatus] | None:
@@ -209,7 +207,6 @@ class Device:
             )
             return None
 
-        # read data
         self.device_manager.read()
         self._wait(timeout)
 
@@ -285,9 +282,6 @@ class Device:
             error,
             exc_info=error,
         )
-
-        if self.verbose:
-            print('on_error:', type(error), error, flush=True)
 
     def _check_connection(self, state: bool = True) -> None:
         if self._is_connected != state:
