@@ -87,19 +87,14 @@ class Storage:
 
     def put(self, frame: Array[int]) -> None:
         """Добавить новый кадр `frame` в буфер."""
-
-        # time
         time_at = time.perf_counter()
 
         if self._started_at is None:
             self._started_at = time_at
-
         self._finished_at = time_at
 
-        # buffer
         self.buffer.append(frame)
 
-        # data
         if len(self.buffer) == self.buffer_size:  # если буфер заполнен, то ранные обрабатываются `handler`, передаются в `data` и буфер очищается
             buffer = np.array(self.buffer)
 
@@ -108,10 +103,8 @@ class Storage:
                 intensity=buffer,
             )
             datum = self.handler(datum, exposure=self.exposure, capacity=self.capacity)
-
             self.data.append(datum)
 
-            #
             self.buffer.clear()
 
     def __bool__(self) -> bool:

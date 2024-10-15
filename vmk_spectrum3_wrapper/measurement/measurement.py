@@ -11,6 +11,19 @@ from vmk_spectrum3_wrapper.measurement.schemas import ExtendedSchema, Schema, St
 from vmk_spectrum3_wrapper.measurement.storage import Storage
 from vmk_spectrum3_wrapper.types import Array, MilliSecond
 
+from vmk_spectrum3_wrapper.filters.pipe_filters import PipeFilter
+from vmk_spectrum3_wrapper.filters.pipe_presets import HighDynamicRangeIntegrationPreset, StandardIntegrationPreset
+
+
+def default_handler_factory(schema: Schema) -> PipeFilter:
+
+    if isinstance(schema, StandardSchema):
+        return StandardIntegrationPreset()
+    if isinstance(schema, ExtendedSchema):
+        return HighDynamicRangeIntegrationPreset()
+
+    raise SchemaError(f'Schema is not supported: {schema}')
+
 
 @overload
 def measurement_factory(n_times: int, exposure: MilliSecond, capacity: int, handler: F | None = None) -> 'Measurement': ...
@@ -20,6 +33,11 @@ def measurement_factory(n_times, exposure, capacity, handler):
 
     try:
         schema = schema_factory(exposure, capacity)
+    except SchemaError as error:
+        raise SetupDeviceError from error
+
+    try:
+        handler = handler or default_handler_factory(schema)
     except SchemaError as error:
         raise SetupDeviceError from error
 
@@ -86,16 +104,12 @@ class Measurement:
 
     def put(self, frame: Array[int]) -> None:
         """Добавить новый `frame` в `storage`."""
-
-        # time
         time_at = time.perf_counter()
 
         if self._started_at is None:
             self._started_at = time_at
-
         self._finished_at = time_at
 
-        #
         self.storage.put(frame)
 
     def pull(self) -> Data:

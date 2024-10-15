@@ -107,6 +107,7 @@ class FakeDeviceManager:
         self.on_context = None
         self.on_status = None
         self.on_error = None
+        self.measurement = None
 
     def set_context_callback(self, callback) -> None:
         self.on_context = callback
@@ -120,8 +121,8 @@ class FakeDeviceManager:
     def set_pipe_filter(self, *args, **kwargs) -> None:
         pass
 
-    def set_measurement(self, *args, **kwargs) -> None:
-        pass
+    def set_measurement(self, measurement: ps3.Measurement) -> None:
+        self.measurement = measurement
 
     def initialize(self, *args, **kwargs) -> None:
         pass
@@ -133,14 +134,16 @@ class FakeDeviceManager:
         self.on_status(message)
 
     def read(self) -> None:
-        n_frames = 1  # TODO: get n_frames from measurement
+        n_frames = self.measurement.read_frames_num
+
+        result = np.random.randint(0, 2**16-1, size=(n_frames, 2048))
 
         for n in range(n_frames):
             self.on_context(
                 context=FakeAssemblyContext(
                     id=FAKE_IP,
-                    frame_number=n,
-                    result=np.random.randint(0, 2**16-1, size=2048),
+                    frame_number=n + 1,
+                    result=result[n, :],
                 ),
             )
 
@@ -162,19 +165,46 @@ def test_device_connect(monkeypatch: pytest.MonkeyPatch):
     'n_times',
     [1, 10, 100],
 )
-def test_device_setup(
+def test_device_read_standard_schema(
     n_times: int,
     monkeypatch: pytest.MonkeyPatch,
 ):
     monkeypatch.setattr(DeviceManagerFactory, '_create', create_device_manager)
+    exposure = 1
 
     device = Device()
     device.connect()
     device.setup(
         n_times=n_times,
-        exposure=1,
+        exposure=exposure,
     )
 
     data = device.read()
 
     assert data.n_times == n_times
+
+
+@pytest.mark.skip(reason='Разобраться с фильтрами!')
+@pytest.mark.parametrize(
+    'n_times',
+    [1, 10, 100],
+)
+def test_device_read_extended_schema(
+    n_times: int,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(DeviceManagerFactory, '_create', create_device_manager)
+    exposure = (1, 10)
+    capacity = (10, 1)
+
+    device = Device()
+    device.connect()
+    device.setup(
+        n_times=n_times,
+        exposure=exposure,
+        capacity=capacity,
+    )
+
+    data = device.read()
+
+    assert data.n_times == n_times * sum(capacity)
