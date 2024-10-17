@@ -4,8 +4,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Iterator, TypeAlias, overload
 
-from vmk_spectrum3_wrapper.measurement.exceptions import SchemaCapacityError, SchemaExposureError, SchemaError
-from vmk_spectrum3_wrapper.measurement.utils import to_microsecond
+from vmk_spectrum3_wrapper.measurement_manager.exceptions import SchemaCapacityError, SchemaExposureError, SchemaError
+from vmk_spectrum3_wrapper.measurement_manager.utils import to_microsecond
 from vmk_spectrum3_wrapper.types import MicroSecond, MilliSecond
 
 

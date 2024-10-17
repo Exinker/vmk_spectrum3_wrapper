@@ -1,6 +1,6 @@
 import pytest
 
-from vmk_spectrum3_wrapper.measurement import to_microsecond
+from vmk_spectrum3_wrapper.measurement_manager import to_microsecond
 from vmk_spectrum3_wrapper.types import MicroSecond, MilliSecond
 
 

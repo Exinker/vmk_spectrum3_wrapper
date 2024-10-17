@@ -8,9 +8,9 @@ import pyspectrum3 as ps3
 
 from vmk_spectrum3_wrapper.data import Data, Meta
 from vmk_spectrum3_wrapper.device.device_config import DeviceConfig, DeviceConfigAuto, DeviceConfigManual
-from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
-from vmk_spectrum3_wrapper.filters import F
-from vmk_spectrum3_wrapper.measurement import Measurement
+from vmk_spectrum3_wrapper.exception import WrapperConnectionError, WrapperError, WrapperSetupError, WrapperStatusError, eprint
+from vmk_spectrum3_wrapper.measurement_manager import MeasurementManager
+from vmk_spectrum3_wrapper.measurement_manager.filters import F
 from vmk_spectrum3_wrapper.types import Array, Digit, IP, MilliSecond
 
 
@@ -44,7 +44,7 @@ class DeviceManagerFactory:
 
         return device_manager
 
-    def _create(self, config: DeviceConfig) -> ps3.DeviceManager:
+    def _create(self, config: DeviceConfig) -> ps3.DeviceManager:  # pragma: no cover
 
         device_manager = ps3.DeviceManager()
 
@@ -72,7 +72,7 @@ class Device:
     ) -> None:
 
         self._config = config or DeviceConfigAuto()
-        self._manager = DeviceManagerFactory(
+        self._device_manager = DeviceManagerFactory(
             on_context=self._on_context,
             on_status=self._on_status,
             on_error=self._on_error,
@@ -90,7 +90,7 @@ class Device:
 
     @property
     def device_manager(self) -> ps3.DeviceManager:
-        return self._manager
+        return self._device_manager
 
     @property
     def status(self) -> Mapping[IP, ps3.AssemblyStatus] | None:
@@ -101,18 +101,17 @@ class Device:
 
         try:
             self._check_connection(state=False)
-        except DeviceError as error:
+        except WrapperConnectionError as error:
             LOGGER.error(
-                'Device is not ready!',
-                exc_info=error,
+                f'{error.__class__.__name__}: {error.__str__()}',
             )
             return self
 
         try:
             self.device_manager.connect()
         except ps3.DriverException as error:
-            LOGGER.info(
-                'Device is not connected!',
+            LOGGER.error(
+                'Device is NOT connected!',
                 exc_info=error,
             )
             return self
@@ -130,9 +129,10 @@ class Device:
 
         try:
             self._check_connection(state=True)
-        except DeviceError as error:
-            eprint(message=emessage, error=error)
-
+        except WrapperError as error:
+            LOGGER.error(
+                f'{error.__class__.__name__}: {error.__str__()}',
+            )
             return self
 
         try:
@@ -140,6 +140,9 @@ class Device:
         except ps3.DriverException as error:
             eprint(message=emessage, error=error)
         else:
+            LOGGER.info(
+                'Device is disconnected.',
+            )
             self._is_connected = False
 
         return self
@@ -149,29 +152,28 @@ class Device:
         n_times: int,
         exposure: MilliSecond | tuple[MilliSecond, MilliSecond],
         capacity: int | tuple[int, int] = 1,
-        handler: F | None = None,
+        filter: F | None = None,
     ) -> 'Device':
         """Setup device to read."""
-        self._measurement = Measurement.create(
+        self._measurement_manager = MeasurementManager.create(
             n_times=n_times,
             exposure=exposure,
             capacity=capacity,
-            handler=handler,
+            filter=filter,
         )
 
         try:
-            self._check_connection()
+            self._check_connection(state=True)
             self._check_status(ps3.AssemblyStatus.ALIVE)
-        except DeviceError as error:
+        except WrapperConnectionError as error:
             LOGGER.error(
-                'Device is not ready!',
-                exc_info=error,
+                f'{error.__class__.__name__}: {error.__str__()}',
             )
             return self
 
         try:
             self.device_manager.set_pipe_filter(ps3.DefaultCopyPipeFilter.instance())
-            self.device_manager.set_measurement(ps3.Measurement(*self._measurement))
+            self.device_manager.set_measurement(ps3.Measurement(*self._measurement_manager))
         except ps3.DriverException as error:
             LOGGER.error(
                 'Device is not setup!',
@@ -184,7 +186,7 @@ class Device:
             )
             LOGGER.info(
                 'Device is setup: %s',
-                self._measurement,
+                self._measurement_manager,
             )
 
         return self
@@ -200,7 +202,7 @@ class Device:
             self._check_connection()
             # self._check_status(ps3.AssemblyStatus.ALIVE)  # TODO: по какой-то причине иногда не приходит статус ps3.AssemblyStatus.ALIVE
             self._check_measurement()
-        except DeviceError as error:
+        except WrapperError as error:
             LOGGER.error(
                 'Device is not ready!',
                 exc_info=error,
@@ -211,15 +213,15 @@ class Device:
         self._wait(timeout)
 
         if blocking:
-            while self._measurement.progress < 1:
+            while self._measurement_manager.progress < 1:
                 self._wait(timeout)
                 LOGGER.debug(
                     'Reading data: %d%s',
-                    self._measurement.progress*100,
+                    self._measurement_manager.progress*100,
                     '%',
                 )
 
-            frames, started_at, finished_at = self._measurement.storage.pull()
+            frames, started_at, finished_at = self._measurement_manager.storage.pull()
             if LOGGER.isEnabledFor(logging.INFO):
                 n_frames = len(frames)
                 seconds = (finished_at - started_at)*(n_frames)/(n_frames - 1) if n_frames > 1 else 0
@@ -232,8 +234,8 @@ class Device:
             return Data.squeeze(
                 frames,
                 Meta(
-                    exposure=self._measurement.storage.exposure,
-                    capacity=self._measurement.storage.capacity,
+                    exposure=self._measurement_manager.storage.exposure,
+                    capacity=self._measurement_manager.storage.capacity,
                     started_at=started_at,
                     finished_at=finished_at,
                 ),
@@ -254,7 +256,7 @@ class Device:
                 for ip, status in self.status.items()
             )
 
-        raise StatusDeviceError(f'Status type {type(__status)} is not supported yet!')
+        raise WrapperStatusError(f'Status type {type(__status)} is not supported yet!')
 
     def _on_context(self, context: ps3.AssemblyContext) -> None:
         LOGGER.debug(
@@ -267,7 +269,7 @@ class Device:
         )
 
     def _on_frame(self, frame: Array[Digit]) -> None:
-        self._measurement.put(frame)
+        self._measurement_manager.put(frame)
 
     def _on_status(self, status: Mapping[IP, ps3.AssemblyStatus]) -> None:
         LOGGER.info(
@@ -284,16 +286,17 @@ class Device:
         )
 
     def _check_connection(self, state: bool = True) -> None:
+
         if self._is_connected != state:
-            raise ConnectionDeviceError({
-                True: 'Device have to be connected before!',
-                False: 'Device is connected before!',
-            }.get(state))
+            if state is False:
+                raise WrapperConnectionError('Device is connected before!')
+            if state is True:
+                raise WrapperConnectionError('Device have to be connected before!')
 
     def _check_status(self, __status: ps3.AssemblyStatus | Sequence[ps3.AssemblyStatus]) -> None:
 
         if self.status is None:
-            raise ConnectionDeviceError('Device is not found! Check the connection!')
+            raise WrapperConnectionError('Device is not found! Check the connection!')
 
         if not self.is_status(__status):
             message = 'Fix assembly before: {ip}!'.format(
@@ -303,11 +306,11 @@ class Device:
                     if status != __status
                 ]),
             )
-            raise StatusDeviceError(message)
+            raise WrapperStatusError(message)
 
     def _check_measurement(self) -> None:
-        if self._measurement is None:
-            raise SetupDeviceError('Setup a device before!')
+        if self._measurement_manager is None:
+            raise WrapperSetupError('Setup a device before!')
 
     @staticmethod
     def _wait(duration: MilliSecond) -> None:
@@ -323,7 +326,7 @@ class Device:
                     status=str(self.status),
                 ),
                 '\tsetup: [{measurement}],'.format(
-                    measurement=self._measurement,
+                    measurement=self._measurement_manager,
                 ),
             ]),
         )

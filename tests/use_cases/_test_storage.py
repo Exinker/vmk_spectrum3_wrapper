@@ -1,8 +1,8 @@
 import pytest
 
 from vmk_spectrum3_wrapper.device import Device
-from vmk_spectrum3_wrapper.filters import PipeFilter, ScaleFilter, StandardIntegrationFilter
-from vmk_spectrum3_wrapper.storage import BufferStorage
+from vmk_spectrum3_wrapper.measurement_manager.filters import PipeFilter, ScaleFilter, StandardIntegrationFilter
+from vmk_spectrum3_wrapper.measurement_manager.storage import BufferStorage
 from vmk_spectrum3_wrapper.types import MilliSecond
 
 

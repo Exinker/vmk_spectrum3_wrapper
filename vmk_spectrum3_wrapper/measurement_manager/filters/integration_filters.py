@@ -3,8 +3,8 @@ import pickle
 import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum
-from vmk_spectrum3_wrapper.filters.base_filter import FilterABC
-from vmk_spectrum3_wrapper.filters.switch_filters import split_shots
+from vmk_spectrum3_wrapper.measurement_manager.filters.base_filter import FilterABC
+from vmk_spectrum3_wrapper.measurement_manager.filters.switch_filters import split_shots
 from vmk_spectrum3_wrapper.types import MilliSecond
 
 
@@ -16,7 +16,11 @@ class StandardIntegrationFilter(IntegrationFilterABC):
     """Интегральный фильтр."""
 
     def __init__(self, is_averaging: bool = True):
-        self.is_averaging = is_averaging
+        self._is_averaging = is_averaging
+
+    @property
+    def is_averaging(self) -> bool:
+        return self._is_averaging
 
     def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
         factor = datum.n_times if self.is_averaging else 0
@@ -31,6 +35,14 @@ class StandardIntegrationFilter(IntegrationFilterABC):
             clipped=clipped,
             deviation=deviation,
         )
+
+    def __eq__(self, other: 'StandardIntegrationFilter') -> None:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return all([
+            self.is_averaging == other.is_averaging,
+        ])
 
 
 class HighDynamicRangeIntegrationFilter(IntegrationFilterABC):

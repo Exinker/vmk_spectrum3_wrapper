@@ -4,18 +4,15 @@ from typing import Iterator, overload
 import pyspectrum3 as ps3
 
 from vmk_spectrum3_wrapper.data import Data
-from vmk_spectrum3_wrapper.exception import SetupDeviceError
-from vmk_spectrum3_wrapper.filters import F
-from vmk_spectrum3_wrapper.measurement.exceptions import SchemaError
-from vmk_spectrum3_wrapper.measurement.schemas import ExtendedSchema, Schema, StandardSchema, schema_factory
-from vmk_spectrum3_wrapper.measurement.storage import Storage
+from vmk_spectrum3_wrapper.exception import WrapperSetupError
+from vmk_spectrum3_wrapper.measurement_manager.exceptions import SchemaError
+from vmk_spectrum3_wrapper.measurement_manager.filters import F, HighDynamicRangeIntegrationPreset, PipeFilter, StandardIntegrationPreset
+from vmk_spectrum3_wrapper.measurement_manager.schemas import ExtendedSchema, Schema, StandardSchema, schema_factory
+from vmk_spectrum3_wrapper.measurement_manager.storage import Storage
 from vmk_spectrum3_wrapper.types import Array, MilliSecond
 
-from vmk_spectrum3_wrapper.filters.pipe_filters import PipeFilter
-from vmk_spectrum3_wrapper.filters.pipe_presets import HighDynamicRangeIntegrationPreset, StandardIntegrationPreset
 
-
-def default_handler_factory(schema: Schema) -> PipeFilter:
+def default_filter_factory(schema: Schema) -> PipeFilter:
 
     if isinstance(schema, StandardSchema):
         return StandardIntegrationPreset()
@@ -26,29 +23,39 @@ def default_handler_factory(schema: Schema) -> PipeFilter:
 
 
 @overload
-def measurement_factory(n_times: int, exposure: MilliSecond, capacity: int, handler: F | None = None) -> 'Measurement': ...
+def measurement_manager_factory(
+    n_times: int,
+    exposure: MilliSecond,
+    capacity: int,
+    filter: F | None = None,
+) -> 'MeasurementManager': ...
 @overload
-def measurement_factory(n_times: int, exposure: tuple[MilliSecond, MilliSecond], capacity: tuple[int, int], handler: F | None = None) -> 'Measurement': ...
-def measurement_factory(n_times, exposure, capacity, handler):
+def measurement_manager_factory(
+    n_times: int,
+    exposure: tuple[MilliSecond, MilliSecond],
+    capacity: tuple[int, int],
+    filter: F | None = None,
+) -> 'MeasurementManager': ...
+def measurement_manager_factory(n_times, exposure, capacity, filter):
 
     try:
         schema = schema_factory(exposure, capacity)
     except SchemaError as error:
-        raise SetupDeviceError from error
+        raise WrapperSetupError from error
 
     try:
-        handler = handler or default_handler_factory(schema)
+        filter = filter or default_filter_factory(schema)
     except SchemaError as error:
-        raise SetupDeviceError from error
+        raise WrapperSetupError from error
 
-    return Measurement(
+    return MeasurementManager(
         n_times=n_times,
         schema=schema,
-        storage=Storage(exposure, capacity, handler),
+        storage=Storage(exposure, capacity, filter),
     )
 
 
-class Measurement:
+class MeasurementManager:
     """Менеджер измерения.
     Параметры:
         `n_times` - количество выполнений схемы измерений;
@@ -56,7 +63,7 @@ class Measurement:
         `storage` - хранилище данных.
     """
 
-    create = measurement_factory
+    create = measurement_manager_factory
 
     def __init__(self, n_times: int, schema: Schema, storage: Storage):
         self._n_times = n_times
@@ -119,9 +126,12 @@ class Measurement:
 
         return Data.squeeze(self.storage.pull())
 
-    def __str__(self) -> str:
-        cls = self.__class__
-        return f'{cls.__name__}({self.n_times}, schema={repr(self.schema)})'
+    def __eq__(self, other: 'MeasurementManager') -> bool:
+        return all([
+            self.n_times == other.n_times,
+            self.schema == other.schema,
+            self.storage == other.storage,
+        ])
 
     def __iter__(self) -> Iterator:
 
@@ -133,3 +143,7 @@ class Measurement:
             return iter([
                 ps3.Exposure(ps3.DoubleTimer(*self.schema)), self.capacity_total, 0,
             ])
+
+    def __str__(self) -> str:
+        cls = self.__class__
+        return f'{cls.__name__}({self.n_times}, schema={repr(self.schema)})'

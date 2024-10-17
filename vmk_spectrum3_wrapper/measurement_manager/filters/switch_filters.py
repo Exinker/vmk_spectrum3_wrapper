@@ -4,8 +4,8 @@ import numpy as np
 
 from vmk_spectrum3_wrapper.config import LOGGER_LEVEL
 from vmk_spectrum3_wrapper.data import Datum
-from vmk_spectrum3_wrapper.filters.base_filter import FilterABC
-from vmk_spectrum3_wrapper.filters.pipe_filters import PipeFilter
+from vmk_spectrum3_wrapper.measurement_manager.filters.base_filter import FilterABC
+from vmk_spectrum3_wrapper.measurement_manager.filters.pipe_filter import PipeFilter
 
 
 class SwitchFilter(FilterABC):

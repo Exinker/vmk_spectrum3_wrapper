@@ -1,6 +1,6 @@
 import pytest
 
-from vmk_spectrum3_wrapper.filters.integration_filters import StandardIntegrationFilter
+from vmk_spectrum3_wrapper.measurement_manager.filters.integration_filters import StandardIntegrationFilter
 
 
 @pytest.mark.parametrize(

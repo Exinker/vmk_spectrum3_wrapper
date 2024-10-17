@@ -2,8 +2,8 @@ from collections.abc import Sequence
 import logging
 
 from vmk_spectrum3_wrapper.data import Datum
-from vmk_spectrum3_wrapper.filters.base_filter import FilterABC
-from vmk_spectrum3_wrapper.filters.typing import F
+from vmk_spectrum3_wrapper.measurement_manager.filters.base_filter import FilterABC
+from vmk_spectrum3_wrapper.measurement_manager.filters.typing import F
 
 
 LOGGER = logging.getLogger(__name__)
@@ -39,6 +39,12 @@ class PipeFilter(FilterABC):
                 print(error)
 
         return datum
+
+    def __eq__(self, other: 'PipeFilter') -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.filters == other.filters
 
     def __getitem__(self, index: int) -> F:
         return self.filters[index]

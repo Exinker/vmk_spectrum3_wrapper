@@ -1,75 +1,115 @@
+from dataclasses import dataclass, field
+import logging
 
-from vmk_spectrum3_wrapper.data import Data, Meta, Datum
-from vmk_spectrum3_wrapper.device.device_config import DeviceConfig, DeviceConfigAuto, DeviceConfigManual
-from vmk_spectrum3_wrapper.exception import ConnectionDeviceError, DeviceError, SetupDeviceError, StatusDeviceError, eprint
-from vmk_spectrum3_wrapper.filters import F
-from vmk_spectrum3_wrapper.measurement import Measurement, StandardSchema
-from vmk_spectrum3_wrapper.types import Array, Digit, IP, MilliSecond
-from vmk_spectrum3_wrapper.units import Units
+import numpy as np
+import pyspectrum3 as ps3
 
-
-class FakeDeviceConfig:
-    pass
+from vmk_spectrum3_wrapper.device.device_config import DeviceConfig
+from vmk_spectrum3_wrapper.types import Array, Digit
 
 
-class FakeDevice:
+LOGGER = logging.getLogger(__name__)
+
+
+class FakeAssemblyContext:
+
+    class AssemblyParams:
+        def __init__(self, id: str):
+            self.id = id
+
+    class FrameState:
+        def __init__(self, frame_number: int):
+            self.frame_number = frame_number
 
     def __init__(
         self,
-        config: FakeDeviceConfig | None = None,
-        verbose: bool = False,
-    ) -> None:
+        id: str,
+        frame_number: int,
+        result: Array[Digit],
+    ):
+        self.assembly_params = self.AssemblyParams(
+            id=id,
+        )
+        self.frame_state = self.FrameState(
+            frame_number=frame_number,
+        )
+        self.result = result
 
-        self._config = config or FakeDeviceConfig()
-        self._status = None
-        self._is_connected = False
 
-        self.verbose = verbose
+@dataclass
+class FakeDeviceState:
+    is_connected: bool = field(default=True)
 
-    def connect(self) -> 'FakeDevice':
-        self._is_connected = True
 
-    def disconnect(self) -> 'FakeDevice':
-        self._is_connected = False
+class FakeDeviceManager:
+    FAKE_IP = '0.0.0.2'
 
-    def setup(
+    def __init__(
         self,
-        n_times: int,
-        exposure: MilliSecond | tuple[MilliSecond, MilliSecond],
-        capacity: int | tuple[int, int] = 1,
-        handler: F | None = None,
-    ) -> 'FakeDevice':
+        state: FakeDeviceState,
+    ):
+        self.state = state
 
-        self._measurement = Measurement.create(
-            n_times=n_times,
-            exposure=exposure,
-            capacity=capacity,
-            handler=handler,
-        )
+        self.on_context = None
+        self.on_status = None
+        self.on_error = None
+        self.measurement = None
 
-        return self
+    def set_context_callback(self, callback) -> None:
+        self.on_context = callback
 
-    def read(self) -> Data:
-        assert isinstance(self._measurement.schema, StandardSchema)
+    def set_status_callback(self, callback) -> None:
+        self.on_status = callback
 
-        schema = self._measurement.schema
-        tau = schema.exposure
-        capacity = schema.capacity
+    def set_error_callback(self, callback) -> None:
+        self.on_error = callback
 
-        n_numbers = 4096
-        units = Units.percent
-        intensity = np.random.randn(capacity, n_numbers)
+    def set_pipe_filter(self, *args, **kwargs) -> None:
+        pass
 
-        datum = Datum(
-            units=units,
-            intensity=intensity,
-            clipped=intensity >= units.value_max,
-            deviation=None,
-        )
+    def set_measurement(self, measurement: ps3.Measurement) -> None:
+        self.measurement = measurement
+
+    def initialize(self, *args, **kwargs) -> None:
+        pass
+
+    def connect(self) -> None:
+        if self.state.is_connected:
+            self.on_status({
+                self.FAKE_IP: ps3.AssemblyStatus.ALIVE,
+            })
+        else:
+            raise ps3.DriverException()
+
+    def disconnect(self) -> None:
+        if self.state.is_connected:
+            self.on_status({
+                self.FAKE_IP: ps3.AssemblyStatus.DISCONNECTED,
+            })
+        else:
+            raise ps3.DriverException()
+
+    def read(self) -> None:
+        n_frames = self.measurement.read_frames_num
+
+        result = np.random.randint(0, 2**16-1, size=(n_frames, 2048))
+
+        for n in range(n_frames):
+            self.on_context(
+                context=FakeAssemblyContext(
+                    id=self.FAKE_IP,
+                    frame_number=n + 1,
+                    result=result[n, :],
+                ),
+            )
 
 
+def device_manager_factory(
+    config: DeviceConfig,
+    state: bool | None = None,
+) -> FakeDeviceManager:
+    state = state or FakeDeviceState()
 
-
-
-
-
+    return FakeDeviceManager(
+        state=state,
+    )

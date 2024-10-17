@@ -6,9 +6,8 @@ import numpy as np
 from vmk_spectrum3_wrapper.adc import ADC
 from vmk_spectrum3_wrapper.config import DEFAULT_ADC, DEFAULT_DETECTOR
 from vmk_spectrum3_wrapper.data import Data, Datum
-from vmk_spectrum3_wrapper.detector import Detector
-from vmk_spectrum3_wrapper.filters.base_filter import FilterABC
-from vmk_spectrum3_wrapper.filters.exceptions import DatumFilterError, FilterError
+from vmk_spectrum3_wrapper.measurement_manager.filters.base_filter import FilterABC
+from vmk_spectrum3_wrapper.measurement_manager.filters.exceptions import DatumFilterError, FilterError
 from vmk_spectrum3_wrapper.noise import Noise
 from vmk_spectrum3_wrapper.shuffle import Shuffle
 from vmk_spectrum3_wrapper.types import Array, Digit, U
@@ -21,6 +20,21 @@ class CoreFilterABC(FilterABC):
     @abstractmethod
     def kernel(self, value: Array[U] | None) -> Array[Any] | None:
         raise NotImplementedError
+
+
+class EyeFilter(CoreFilterABC):
+    """Единичный (без преобразований) фильтр."""
+
+    def kernel(self, value: Array[U]) -> Array[U]:
+        return value
+
+    def __call__(self, datum: Datum, *args, **kwargs) -> Datum:
+        return Datum(
+            units=datum.units,
+            intensity=datum.intensity,
+            clipped=self.kernel(datum.intensity),
+            deviation=datum.deviation,
+        )
 
 
 class ShuffleFilter(CoreFilterABC):
@@ -65,6 +79,14 @@ class ShuffleFilter(CoreFilterABC):
             deviation=self.kernel(datum.deviation),
         )
 
+    def __eq__(self, other: 'ShuffleFilter') -> None:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return all([
+            self.shuffle == other.shuffle,
+        ])
+
 
 class ClipFilter(CoreFilterABC):
     """Маскирование зашкаленных отсчетов фильтр."""
@@ -73,7 +95,11 @@ class ClipFilter(CoreFilterABC):
         if not (adc == DEFAULT_ADC):
             raise FilterError('Change `DEFAULT_ADC` in config file instead!')
 
-        self.adc = adc
+        self._adc = adc
+
+    @property
+    def adc(self) -> ADC:
+        return self._adc
 
     @property
     def value_max(self) -> int:
@@ -92,6 +118,14 @@ class ClipFilter(CoreFilterABC):
             clipped=self.kernel(datum.intensity),
             deviation=datum.deviation,
         )
+
+    def __eq__(self, other: 'ClipFilter') -> None:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return all([
+            self.adc == other.adc,
+        ])
 
 
 class ScaleFilter(CoreFilterABC):
@@ -128,6 +162,15 @@ class ScaleFilter(CoreFilterABC):
             clipped=datum.clipped,
             deviation=self.kernel(datum.deviation),
         )
+
+    def __eq__(self, other: 'ScaleFilter') -> None:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return all([
+            self.units == other.units,
+            self.scale == other.scale,
+        ])
 
 
 class OffsetFilter(CoreFilterABC):
@@ -181,6 +224,14 @@ class OffsetFilter(CoreFilterABC):
             deviation=self.kernel(datum.deviation, kind='deviation'),
         )
 
+    def __eq__(self, other: 'OffsetFilter') -> None:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return all([
+            self.offset == other.offset,
+        ])
+
 
 class DeviationFilter(CoreFilterABC):
     """Расчет стандартного отклонения фильтр."""
@@ -224,3 +275,12 @@ class DeviationFilter(CoreFilterABC):
             clipped=datum.clipped,
             deviation=self.kernel(datum.intensity),
         )
+
+    def __eq__(self, other: 'DeviationFilter') -> None:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return all([
+            self.units == other.units,
+            self.noise == other.noise,
+        ])

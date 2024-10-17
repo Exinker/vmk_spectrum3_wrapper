@@ -4,18 +4,26 @@ from collections.abc import Sequence
 import numpy as np
 
 from vmk_spectrum3_wrapper.data import Datum
-from vmk_spectrum3_wrapper.filters.pipe_filters import PipeFilter
-from vmk_spectrum3_wrapper.filters.pipe_presets import StandardIntegrationPreset
+from vmk_spectrum3_wrapper.measurement_manager.filters import PipeFilter, StandardIntegrationPreset
 from vmk_spectrum3_wrapper.types import Array, MilliSecond, Second
 from vmk_spectrum3_wrapper.units import Units
 
 
 class Storage:
 
-    def __init__(self, exposure: MilliSecond | tuple[MilliSecond, MilliSecond], capacity: int | tuple[int, int], handler: PipeFilter | None = None):
+    def __init__(
+        self,
+        exposure: MilliSecond | tuple[MilliSecond, MilliSecond],
+        capacity: int | tuple[int, int],
+        filter: PipeFilter | None = None,
+    ):
+        if not isinstance(filter, PipeFilter):
+            if filter is not None:
+                TypeError(f'Filter: {type(filter)} is not suported!')
+
         self._exposure = exposure
         self._capacity = capacity
-        self._handler = handler or StandardIntegrationPreset()
+        self._filter = filter or StandardIntegrationPreset()
 
         self._started_at = None  # время окончания измерения первого кадра
         self._finished_at = None  # время окончания измерения последнего кадра
@@ -33,8 +41,8 @@ class Storage:
         return self._capacity
 
     @property
-    def handler(self) -> PipeFilter:
-        return self._handler
+    def filter(self) -> PipeFilter:
+        return self._filter
 
     @property
     def started_at(self) -> float:
@@ -102,7 +110,7 @@ class Storage:
                 units=Units.digit,
                 intensity=buffer,
             )
-            datum = self.handler(datum, exposure=self.exposure, capacity=self.capacity)
+            datum = self.filter(datum, exposure=self.exposure, capacity=self.capacity)
             self.data.append(datum)
 
             self.buffer.clear()
@@ -110,10 +118,17 @@ class Storage:
     def __bool__(self) -> bool:
         return True
 
+    def __eq__(self, other: 'Storage') -> bool:
+        return all([
+            self.exposure == other.exposure,
+            self.capacity == other.capacity,
+            self.filter == other.filter,
+        ])
+
     def __len__(self) -> int:
         return len(self.data)
 
     def __repr__(self) -> str:
         cls = self.__class__
 
-        return f'{cls.__name__}(handler: {self.handler})'
+        return f'{cls.__name__}(handler: {self.filter})'

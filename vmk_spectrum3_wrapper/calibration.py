@@ -6,8 +6,7 @@ from tqdm import tqdm
 
 from vmk_spectrum3_wrapper.data import Data
 from vmk_spectrum3_wrapper.device import Device
-from vmk_spectrum3_wrapper.filters.pipe_presets import StandardIntegrationPreset
-from vmk_spectrum3_wrapper.filters.switch_filters import SwitchFilter
+from vmk_spectrum3_wrapper.measurement_manager.filters import StandardIntegrationPreset, SwitchFilter
 from vmk_spectrum3_wrapper.types import MilliSecond
 from vmk_spectrum3_wrapper.units import Units
 
@@ -27,7 +26,7 @@ def calibrate_dark(
         n_times=1,
         exposure=exposure,
         capacity=capacity,
-        handler={
+        filter={
             int: StandardIntegrationPreset(units=units, bias=bias),
             tuple: SwitchFilter([
                 StandardIntegrationPreset(units=units, bias=bias),
@@ -65,7 +64,7 @@ def calibrate_bias(
             n_times=1,
             exposure=tau.item(),
             capacity=capacity,
-            handler=StandardIntegrationPreset(
+            filter=StandardIntegrationPreset(
                 units=units,
             ),
         )
