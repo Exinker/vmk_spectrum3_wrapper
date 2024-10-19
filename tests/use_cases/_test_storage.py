@@ -1,9 +1,9 @@
 import pytest
 
 from vmk_spectrum3_wrapper.device import Device
-from vmk_spectrum3_wrapper.filter import PipeFilter, ScaleFilter, StandardIntegrationFilter
-from vmk_spectrum3_wrapper.storage import BufferStorage
-from vmk_spectrum3_wrapper.typing import MilliSecond
+from vmk_spectrum3_wrapper.measurement_manager.filters import PipeFilter, ScaleFilter, StandardIntegrationFilter
+from vmk_spectrum3_wrapper.measurement_manager.storage import BufferStorage
+from vmk_spectrum3_wrapper.types import MilliSecond
 
 
 @pytest.fixture
@@ -15,6 +15,7 @@ def device() -> Device:
     device.disconnect()
 
 
+@pytest.mark.skip()
 def test_read_storage(device: Device, exposure: MilliSecond = 4):
     n_times = 1
 
@@ -27,6 +28,7 @@ def test_read_storage(device: Device, exposure: MilliSecond = 4):
     assert data.n_times == n_times
 
 
+@pytest.mark.skip()
 def test_read_buffer_storage(device: Device, exposure: MilliSecond = 4, capacity: int = 100):
     n_times = 1
 

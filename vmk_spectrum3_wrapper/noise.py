@@ -5,7 +5,7 @@ import numpy as np
 
 from vmk_spectrum3_wrapper.adc import ADC
 from vmk_spectrum3_wrapper.detector import Detector
-from vmk_spectrum3_wrapper.typing import Array, U
+from vmk_spectrum3_wrapper.types import Array, U
 from vmk_spectrum3_wrapper.units import Units
 
 
@@ -28,9 +28,9 @@ class Noise():
 
         if self.units == Units.digit:
             read_noise = detector.config.read_noise
-            kc = detector.config.capacity / adc.value_max
+            k = adc.value_max / detector.config.capacity
 
-            return (1/kc) * np.sqrt(read_noise**2 + value*kc) / np.sqrt(n_frames)
+            return k * np.sqrt(read_noise**2 + value/k) / np.sqrt(n_frames)
 
         if self.units == Units.electron:
             read_noise = detector.config.read_noise
@@ -39,8 +39,8 @@ class Noise():
 
         if self.units == Units.percent:
             read_noise = detector.config.read_noise
-            kc = detector.config.capacity / 100
+            k = 100 / detector.config.capacity
 
-            return (1/kc) * np.sqrt(read_noise**2 + value*kc) / np.sqrt(n_frames)
+            return k * np.sqrt(read_noise**2 + value/k) / np.sqrt(n_frames)
 
-        raise TypeError(f'{self.units} units is not supported!')
+        raise ValueError(f'{self.units} units is not supported!')

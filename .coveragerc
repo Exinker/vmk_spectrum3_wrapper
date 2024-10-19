@@ -1,0 +1,6 @@
+[report]
+exclude_also =
+    def __init__
+    def __str__
+
+    raise NotImplementedError 

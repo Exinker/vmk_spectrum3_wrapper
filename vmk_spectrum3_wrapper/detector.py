@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from vmk_spectrum3_wrapper.typing import Electron, MicroMeter
+from vmk_spectrum3_wrapper.types import Electron, MicroMeter
 
 
 @dataclass(frozen=True)
@@ -15,7 +15,6 @@ class DetectorConfig:
     height: MicroMeter
     description: str = field(default='')
 
-    # --------        private        --------
     def __str__(self) -> str:
         cls = self.__class__
         name = self.name
@@ -56,12 +55,6 @@ class Detector(Enum):
         """Config of the detector."""
         return self.value
 
-    @property
-    def pitch(self) -> MicroMeter:
-        """Pitch structure of the detector."""
-        return self.config.width
-
-    # --------        private        --------
     def __str__(self) -> str:
         cls = self.__class__
         name = self.config.name
