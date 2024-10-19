@@ -57,6 +57,7 @@ def test_device_connect_is_connected_before_error(
     assert 'Device is connected before!' in caplog.text
 
 
+@pytest.mark.skip('Method: `disconnect` is no longer supported!')
 def test_device_disconnect(
     monkeypatch: pytest.MonkeyPatch,
     caplog,
@@ -74,7 +75,7 @@ def test_device_disconnect(
     assert 'Device is disconnected.' in caplog.text
 
 
-@pytest.mark.skip('Разобраться с поведением на реальном устройстве!')
+@pytest.mark.skip('Method: `disconnect` is no longer supported!')
 def test_device_disconnect_not_connected_error(
     monkeypatch: pytest.MonkeyPatch,
     caplog,

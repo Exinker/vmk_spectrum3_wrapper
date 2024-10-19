@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 import logging
 import time
-from typing import Callable, Mapping
+from typing import Callable, Mapping, overload
 
 import numpy as np
 import pyspectrum3 as ps3
@@ -79,6 +79,7 @@ class Device:
         ).create(
             config=self.config,
         )
+        self._measurement_manager = None
         self._status = None
         self._is_connected = False
 
@@ -125,7 +126,11 @@ class Device:
 
     def disconnect(self) -> 'Device':
         """Disconnect from device."""
-        emessage = 'Device is not ready to disconnect!'
+
+        LOGGER.error(
+            'Method: `disconnect` is no longer supported!',
+        )
+        return self
 
         try:
             self._check_connection(state=True)
@@ -138,7 +143,11 @@ class Device:
         try:
             self.device_manager.disconnect()
         except ps3.DriverException as error:
-            eprint(message=emessage, error=error)
+            LOGGER.error(
+                'Device is not disconnected!',
+                exc_info=error,
+            )
+            return self
         else:
             LOGGER.info(
                 'Device is disconnected.',
@@ -147,14 +156,25 @@ class Device:
 
         return self
 
+    @overload
     def setup(
         self,
-        n_times: int,
-        exposure: MilliSecond | tuple[MilliSecond, MilliSecond],
-        capacity: int | tuple[int, int] = 1,
+        n_times: int,  # количество повторений схемы измерения (schema)
+        exposure: MilliSecond,  # базовое время экспозиции
+        capacity: int = 1,  # количество накоплений
         filter: F | None = None,
-    ) -> 'Device':
-        """Setup device to read."""
+    ) -> 'Device': ...
+    @overload
+    def setup(
+        self,
+        n_times: int,  # количество повторений схемы измерения (schema)
+        exposure: tuple[MilliSecond, MilliSecond],  # базовое время экспозиции в расширенном режиме измерений
+        capacity: tuple[int, int] = ...,  # количество накоплений в расширенном режиме измерений
+        filter: F | None = None,
+    ) -> 'Device': ...
+    def setup(self, n_times, exposure, capacity=1, filter=None):
+        """Setup device to read a measurement."""
+
         self._measurement_manager = MeasurementManager.create(
             n_times=n_times,
             exposure=exposure,

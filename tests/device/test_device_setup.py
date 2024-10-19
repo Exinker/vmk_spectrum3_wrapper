@@ -41,6 +41,7 @@ def test_device_setup_standard_schema_default(
     assert f'Device is setup: {default_measurement}' in caplog.text
 
 
+@pytest.mark.skip('`DoubleTimer` is no longer supported!')
 @pytest.mark.parametrize(
     'n_times',
     [1, 10, 100],

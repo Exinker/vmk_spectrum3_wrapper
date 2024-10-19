@@ -35,6 +35,7 @@ def test_device_read_standard_schema(
     assert data.n_times == n_times
 
 
+@pytest.mark.skip('`DoubleTimer` is no longer supported!')
 @pytest.mark.parametrize(
     'n_times',
     [1, 10, 100],

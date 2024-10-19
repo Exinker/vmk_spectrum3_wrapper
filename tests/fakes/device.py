@@ -79,15 +79,17 @@ class FakeDeviceManager:
                 self.FAKE_IP: ps3.AssemblyStatus.ALIVE,
             })
         else:
-            raise ps3.DriverException()
+            raise ps3.DriverException(
+                messages=['No connected assemblies'],
+                ep=ps3.ExceptionProducer.DEVICE,
+                et=ps3.ExceptionType.CONFIG_EXCEPTION,
+            )
 
     def disconnect(self) -> None:
         if self.state.is_connected:
             self.on_status({
                 self.FAKE_IP: ps3.AssemblyStatus.DISCONNECTED,
             })
-        else:
-            raise ps3.DriverException()
 
     def read(self) -> None:
         n_frames = self.measurement.read_frames_num

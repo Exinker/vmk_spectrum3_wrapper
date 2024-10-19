@@ -32,7 +32,7 @@ class EyeFilter(CoreFilterABC):
         return Datum(
             units=datum.units,
             intensity=datum.intensity,
-            clipped=self.kernel(datum.intensity),
+            clipped=self.kernel(datum.clipped),
             deviation=datum.deviation,
         )
 
