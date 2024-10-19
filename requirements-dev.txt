@@ -8,6 +8,6 @@ flake8-builtins
 pep8-naming
 
 pytest
-tqdm
+pytest-cov
 
 jupyter

@@ -8,7 +8,7 @@ Author: Vaschenko Pavel
 from dataclasses import dataclass
 from enum import Enum
 
-from vmk_spectrum3_wrapper.typing import Digit
+from vmk_spectrum3_wrapper.types import Digit
 
 
 @dataclass(frozen=True)
@@ -17,7 +17,6 @@ class ADCConfig:
     resolution: int
     log: bool
 
-    # --------        private        --------
     def __str__(self) -> str:
         cls = self.__class__
         resolution = self.resolution

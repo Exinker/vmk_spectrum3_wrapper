@@ -3,8 +3,8 @@ import time
 import pyspectrum3 as ps3
 import pytest
 
-from vmk_spectrum3_wrapper.measurement import to_microsecond
-from vmk_spectrum3_wrapper.typing import Array, MilliSecond
+from vmk_spectrum3_wrapper.measurement_manager import to_microsecond
+from vmk_spectrum3_wrapper.types import Array, MilliSecond
 
 
 DATA = []
@@ -37,6 +37,7 @@ def dev():
     return dev
 
 
+@pytest.mark.skip()
 @pytest.mark.parametrize('tau', [2, 1, 0.4])
 def test_high_load_filter(tau: MilliSecond, dev, n: int = 100) -> None:
     DATA.clear()

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-from vmk_spectrum3_wrapper.typing import MilliSecond
+from vmk_spectrum3_wrapper.types import MilliSecond
 
 
 if __name__ == '__main__':

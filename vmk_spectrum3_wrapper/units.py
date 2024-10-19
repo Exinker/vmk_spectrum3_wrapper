@@ -1,7 +1,7 @@
 from enum import Enum
 
-from vmk_spectrum3_wrapper.config import _ADC
-from vmk_spectrum3_wrapper.typing import Electron, U
+from vmk_spectrum3_wrapper.config import DEFAULT_ADC, DEFAULT_DETECTOR
+from vmk_spectrum3_wrapper.types import Electron, U
 
 
 class Units(Enum):
@@ -15,11 +15,11 @@ class Units(Enum):
         """Get unit's max value (clipped value)."""
 
         if self == Units.digit:
-            return _ADC.value_max
+            return DEFAULT_ADC.value_max
         if self == Units.percent:
             return 100
         if self == Units.electron:
-            raise TypeError(f'Units {self} is not supported yet!')
+            return DEFAULT_DETECTOR.config.capacity
 
         raise TypeError(f'Units {self} is not supported yet!')
 
@@ -50,13 +50,33 @@ class Units(Enum):
         if self == Units.digit:
             return r''
         if self == Units.percent:
-            return r'%'
+            return r'\%'
         if self == Units.electron:
             return r'e^{-}'
 
         raise TypeError(f'Units {self} is not supported yet!')
 
-# --------        handler        --------
+    def get_label(self, is_enclosed: bool = False) -> str:
+        """Get units's label."""
+        label = self._get_label()
+
+        if is_enclosed:
+            return r'${label}$'.format(
+                label=label,
+            )
+        return label
+
+    def _get_label(self) -> str:
+
+        if self == Units.digit:
+            return r''
+        if self == Units.percent:
+            return r'\%'
+        if self == Units.electron:
+            return r'e^{-}'
+
+        raise TypeError(f'Units {self} is not supported yet!')
+
 def to_electron(value: U, units: Units, capacity: Electron) -> Electron:
     """Convert value to electron units."""
 

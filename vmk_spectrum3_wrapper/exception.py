@@ -1,27 +1,26 @@
 import sys
 from typing import TextIO
 
-from vmk_spectrum3_wrapper.typing import Path
+from vmk_spectrum3_wrapper.types import Path
 
 
-# --------        device        --------
-class DeviceError(Exception):
+class WrapperError(Exception):
     pass
 
 
-class ConnectionDeviceError(Exception):
+class WrapperConnectionError(WrapperError):
     pass
 
 
-class ReadDeviceError(Exception):
+class WrapperReadError(WrapperError):
     pass
 
 
-class SetupDeviceError(DeviceError):
+class WrapperSetupError(WrapperError):
     pass
 
 
-class StatusDeviceError(DeviceError):
+class WrapperStatusError(WrapperError):
     pass
 
 
