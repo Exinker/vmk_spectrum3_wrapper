@@ -184,7 +184,7 @@ class Device:
 
         try:
             self._check_connection(state=True)
-            self._check_status(ps3.AssemblyStatus.ALIVE)
+            # self._check_status(ps3.AssemblyStatus.ALIVE)
         except WrapperConnectionError as error:
             LOGGER.error(
                 f'{error.__class__.__name__}: {error.__str__()}',
@@ -241,18 +241,18 @@ class Device:
                     '%',
                 )
 
-            frames, started_at, finished_at = self._measurement_manager.storage.pull()
+            data, started_at, finished_at = self._measurement_manager.storage.pull()
             if LOGGER.isEnabledFor(logging.INFO):
-                n_frames = len(frames)
-                seconds = (finished_at - started_at)*(n_frames)/(n_frames - 1) if n_frames > 1 else 0
+                n_data = len(data)
+                seconds = finished_at - started_at
                 LOGGER.info(
-                    'Reading is complete! Total: %d frames in %.3fs (approx).',
-                    n_frames,
+                    'Reading is completed! Total: %d data in %.3fs (approx).',
+                    n_data,
                     seconds,
                 )
 
             return Data.squeeze(
-                frames,
+                data,
                 Meta(
                     exposure=self._measurement_manager.storage.exposure,
                     capacity=self._measurement_manager.storage.capacity,
