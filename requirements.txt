@@ -1,3 +1,4 @@
+python-dotenv
 matplotlib
 numpy
 tqdm
