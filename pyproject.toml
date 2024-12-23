@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vmk-spectrum3-wrapper"
+version = "0.3.0"
+description = "`vmk-spectrum3-wrapper` is a wrapper for `vmk_spectrum3` library."
+authors = [
+    {name = "Pavel Vaschenko", email="vaschenko@vmk.ru"},
+]
+maintainers = [
+    {name = "Pavel Vaschenko", email="vaschenko@vmk.ru"},
+]
+readme = "README.md"
+license = {text = "MIT License"}
+dependencies = [
+    "matplotlib==3.8.3",
+    "numpy==1.26.4",
+    "python-dotenv==1.0.1",
+    "tqdm==4.66.2",
+    # "vmk-spectrum3",
+]
+requires-python = "==3.10.*"
+
+[dependency-groups]
+linting = [
+    "flake8",
+    "flake8-commas",
+    "flake8-import-order",
+    "flake8-bugbear",
+    "flake8-builtins",
+    "pep8-naming",
+]
+testing = [
+    "pytest",
+    "pytest-cov",
+    "pytest-flake8",
+]
+notebook = [
+    "ipykernel>=6.29.5",
+    "jupyter==1.1.1",
+]
+dev = [
+    {include-group = "linting"},
+    {include-group = "testing"},
+    {include-group = "notebook"},
+]
+
+[tool.uv.sources]
+vmk-spectrum3 = { path = "vmk_spectrum3-0.2.0-cp310-cp310-win_amd64.whl" }
