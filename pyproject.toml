@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vmk-spectrum3-wrapper"
-version = "0.3.0"
+version = "0.3.2"
 description = "`vmk-spectrum3-wrapper` is a wrapper for `vmk_spectrum3` library."
 authors = [
     {name = "Pavel Vaschenko", email="vaschenko@vmk.ru"},
@@ -19,7 +19,7 @@ dependencies = [
     "numpy==1.26.4",
     "python-dotenv==1.0.1",
     "tqdm==4.66.2",
-    "vmk-spectrum3",
+    # "vmk-spectrum3",
 ]
 requires-python = "==3.10.*"
 
