@@ -1631,24 +1631,6 @@ wheels = [
 ]
 
 [[package]]
-name = "vmk-spectrum3"
-version = "0.2.0"
-source = { path = "vmk_spectrum3-0.2.0-cp310-cp310-win_amd64.whl" }
-dependencies = [
-    { name = "numpy" },
-]
-wheels = [
-    { filename = "vmk_spectrum3-0.2.0-cp310-cp310-win_amd64.whl", hash = "sha256:e1035e39da5872fd32c33a96a7a776568b10a89241bc79f3afb848f0c7bc164b" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "numpy" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=6.0" },
-]
-provides-extras = ["test"]
-
-[[package]]
 name = "vmk-spectrum3-wrapper"
 version = "0.4.0"
 source = { editable = "." }
@@ -1660,11 +1642,6 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
-demo = [
-    { name = "ipykernel" },
-    { name = "jupyter" },
-    { name = "vmk-spectrum3" },
-]
 dev = [
     { name = "flake8" },
     { name = "flake8-bugbear" },
@@ -1705,11 +1682,6 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-demo = [
-    { name = "ipykernel", specifier = ">=6.29.5" },
-    { name = "jupyter", specifier = "==1.1.1" },
-    { name = "vmk-spectrum3", path = "vmk_spectrum3-0.2.0-cp310-cp310-win_amd64.whl" },
-]
 dev = [
     { name = "flake8" },
     { name = "flake8-bugbear" },

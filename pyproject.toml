@@ -45,10 +45,10 @@ dev = [
     {include-group = "testing"},
     {include-group = "notebook"},
 ]
-demo = [
-    {include-group = "notebook"},
-    "vmk-spectrum3",
-]
+# demo = [
+#     {include-group = "notebook"},
+#     "vmk-spectrum3",
+# ]
 
 [tool.uv.sources]
 vmk-spectrum3 = { path = "vmk_spectrum3-0.2.0-cp310-cp310-win_amd64.whl" }
