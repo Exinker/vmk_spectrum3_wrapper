@@ -202,7 +202,7 @@ class Device:
             return self
         else:
             self._wait(
-                duration=self.config.change_exposure_delay,  # TODO: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
+                timeout=self.config.change_exposure_timeout,  # TODO: ждем пока Сергей реализует get_current_mode и get_current_exposure для двойного времени экспозиции
             )
             LOGGER.info(
                 'Device is setup: %s',
@@ -333,8 +333,8 @@ class Device:
             raise WrapperSetupError('Setup a device before!')
 
     @staticmethod
-    def _wait(duration: MilliSecond) -> None:
-        time.sleep(1e-3*duration)
+    def _wait(timeout: MilliSecond) -> None:
+        time.sleep(1e-3*timeout)
 
     def __repr__(self) -> str:
         cls = self.__class__

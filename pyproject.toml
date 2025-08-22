@@ -19,7 +19,7 @@ dependencies = [
     "numpy==1.26.4",
     "python-dotenv==1.0.1",
     "tqdm==4.66.2",
-    # "vmk-spectrum3",
+    "vmk-spectrum3",
 ]
 requires-python = "==3.10.*"
 
