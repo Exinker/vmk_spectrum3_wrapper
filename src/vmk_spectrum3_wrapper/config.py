@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 from vmk_spectrum3_wrapper.adc import ADC
 from vmk_spectrum3_wrapper.detector import Detector
+from vmk_spectrum3_wrapper.types import MilliSecond
 
 
 load_dotenv(os.path.join('.', '.env'), verbose=True)
@@ -49,7 +50,23 @@ def load_default_detector(default: Detector = Detector.BLPP2000) -> Detector:
         return detector
 
 
+def load_change_exposure_timeout(default: MilliSecond = 1000) -> MilliSecond:
+
+    value = os.getenv('CHANGE_EXPOSURE_TIMEOUT')
+    if value is None:
+        return default
+
+    try:
+        timeout = int(value)
+    except TypeError:
+        print('CHANGE_EXPOSURE_TIMEOUT is integer time in ms.')
+        return default
+    else:
+        return timeout
+
+
 LOGGING_LEVEL = os.getenv('LOGGING_LEVEL') or 'INFO'
 
 DEFAULT_ADC = load_default_adc()
 DEFAULT_DETECTOR = load_default_detector()
+CHANGE_EXPOSURE_TIMEOUT = load_change_exposure_timeout()
